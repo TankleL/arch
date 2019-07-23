@@ -2,7 +2,7 @@
 
 #include "archserver-prereq.hpp"
 #include "uv.h"
-#include "tcpdata-queue.hpp"
+#include "archmessagequeue.hpp"
 #include "tcpconn.hpp"
 #include "protocol.hpp"
 #include "tcpsvc-workermgr.hpp"
@@ -51,7 +51,7 @@ namespace arch
 
 	private:
 		// for sending thread
-		void _process_outnode(const TCPDataQueueNode& node);
+		void _process_outnode(const ArchMessage& node);
 		void _outing_listen_thread();
 			
 	private:
@@ -59,8 +59,8 @@ namespace arch
 		uv_tcp_t					_uv_server;
 		uv_loop_t*					_uv_loop;
 		uv_async_t*					_uv_async_send;
-		TCPDataQueue*				_in_queue;
-		TCPDataQueue*				_out_queue;
+		ArchMessageQueue*				_in_queue;
+		ArchMessageQueue*				_out_queue;
 		TCPServiceWorkerManager*	_workermgr;
 		std::thread*				_othrd;
 		ProtocolType				_psdestpt;

@@ -3,7 +3,7 @@
 
 using namespace arch;
 
-TCPServiceWorker::TCPServiceWorker(TCPDataQueue* in_queue, TCPDataQueue* out_queue, IServiceProcessor* svc) noexcept
+TCPServiceWorker::TCPServiceWorker(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue, IServiceProcessor* svc) noexcept
 	: _this_thread(nullptr)
 	, _in_queue(in_queue)
 	, _out_queue(out_queue)
@@ -46,7 +46,7 @@ void TCPServiceWorker::_thread()
 	{
 		if (_in_queue->size() > 0)
 		{
-			TCPDataQueueNode*	inode = nullptr;
+			ArchMessage*	inode = nullptr;
 			if (_in_queue->pop(&inode))
 			{
 				_svc->process(*_out_queue, *inode);

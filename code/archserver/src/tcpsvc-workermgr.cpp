@@ -4,8 +4,8 @@ using namespace std;
 using namespace arch;
 
 TCPServiceWorkerManager::TCPServiceWorkerManager(
-	TCPDataQueue* in_queue,
-	TCPDataQueue* out_queue,
+	ArchMessageQueue* in_queue,
+	ArchMessageQueue* out_queue,
 	IServiceProcessor* svc,
 	int core_number)
 	: _core_nums(core_number)

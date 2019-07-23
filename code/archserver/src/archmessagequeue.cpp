@@ -1,16 +1,16 @@
-#include "tcpdata-queue.hpp"
+#include "archmessagequeue.hpp"
 
 using namespace std;
 using namespace arch;
 
-TCPDataQueue::TCPDataQueue()
+ArchMessageQueue::ArchMessageQueue()
 	: _queue(nullptr)
 	, _mtx(nullptr)
 	, _delegate(nullptr)
 {
 	try
 	{
-		_queue = new std::queue<TCPDataQueueNode*>();
+		_queue = new std::queue<ArchMessage*>();
 	}
 	catch (const std::exception& e)
 	{
@@ -31,13 +31,13 @@ TCPDataQueue::TCPDataQueue()
 	}
 }
 
-TCPDataQueue::~TCPDataQueue() noexcept
+ArchMessageQueue::~ArchMessageQueue() noexcept
 {
 	delete _queue;
 	delete _mtx;
 }
 
-void TCPDataQueue::push(TCPDataQueueNode* node)
+void ArchMessageQueue::push(ArchMessage* node)
 {
 	std::unique_lock<std::mutex>	lock(*_mtx);
 	_queue->push(node);
@@ -49,7 +49,7 @@ void TCPDataQueue::push(TCPDataQueueNode* node)
 	}
 }
 
-bool TCPDataQueue::pop(TCPDataQueueNode** node)
+bool ArchMessageQueue::pop(ArchMessage** node)
 {
 	std::unique_lock<std::mutex>	lock(*_mtx);
 	bool res = false;
@@ -71,12 +71,12 @@ bool TCPDataQueue::pop(TCPDataQueueNode** node)
 	return res;
 }
 
-size_t TCPDataQueue::size() const noexcept
+size_t ArchMessageQueue::size() const noexcept
 {
 	return _queue->size();
 }
 
-void TCPDataQueue::set_delegate(ITCPDataQueueDelegate* the_delegate) noexcept
+void ArchMessageQueue::set_delegate(IArchMessageQueueDelegate* the_delegate) noexcept
 {
 	_delegate = the_delegate;
 }

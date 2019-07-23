@@ -2,7 +2,7 @@
 
 #include "archserver-prereq.hpp"
 #include "uv.h"
-#include "tcpdata-queue-node.hpp"
+#include "archmessage.hpp"
 #include "buffer.hpp"
 #include "tcpservice-protocols.hpp"
 #include "protocol.hpp"

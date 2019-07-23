@@ -1,17 +1,17 @@
-#include "tcpdata-queue-node.hpp"
+#include "archmessage.hpp"
 #include "tcpserver.hpp"
 
 using namespace std;
 using namespace arch;
 
-TCPDataQueueNode::TCPDataQueueNode()
+ArchMessage::ArchMessage()
 	: _dobj(nullptr)
 	, _hlink(Invalid_linke_handle)
 	, _uid(0)
 	, _cct(CCT_None)
 {}
 
-TCPDataQueueNode::TCPDataQueueNode(TCPDataQueueNode&& rhs) noexcept
+ArchMessage::ArchMessage(ArchMessage&& rhs) noexcept
 	: _dobj(rhs._dobj)
 	, _hlink(rhs._hlink)
 	, _uid(rhs._uid)
@@ -23,19 +23,19 @@ TCPDataQueueNode::TCPDataQueueNode(TCPDataQueueNode&& rhs) noexcept
 	rhs._cct = CCT_None;
 }
 
-TCPDataQueueNode::TCPDataQueueNode(IServiceDataObject* dobj, link_handle_t hlink, uint32_t uid, ConnCtrlType cct) noexcept
+ArchMessage::ArchMessage(IServiceDataObject* dobj, link_handle_t hlink, uint32_t uid, ConnCtrlType cct) noexcept
 	: _dobj(dobj)
 	, _hlink(hlink)
 	, _uid(uid)
 	, _cct(cct)
 {}
 
-TCPDataQueueNode::~TCPDataQueueNode()
+ArchMessage::~ArchMessage()
 {
 	clear();
 }
 
-TCPDataQueueNode& TCPDataQueueNode::operator=(TCPDataQueueNode&& rhs) noexcept
+ArchMessage& ArchMessage::operator=(ArchMessage&& rhs) noexcept
 {
 	_dobj = rhs._dobj;				rhs._dobj = nullptr;
 	_hlink = rhs._hlink;			rhs._hlink = nullptr;
@@ -44,7 +44,7 @@ TCPDataQueueNode& TCPDataQueueNode::operator=(TCPDataQueueNode&& rhs) noexcept
 	return *this;
 }
 
-TCPDataQueueNode& TCPDataQueueNode::acquire(TCPDataQueueNode& node) noexcept
+ArchMessage& ArchMessage::acquire(ArchMessage& node) noexcept
 {
 	_dobj = node._dobj; node._dobj = nullptr;
 	_hlink = node._hlink;
@@ -53,27 +53,27 @@ TCPDataQueueNode& TCPDataQueueNode::acquire(TCPDataQueueNode& node) noexcept
 	return *this;
 }
 
-IServiceDataObject* TCPDataQueueNode::get_data_object() const noexcept
+IServiceDataObject* ArchMessage::get_data_object() const noexcept
 {
 	return _dobj;
 }
 
-link_handle_t TCPDataQueueNode::get_hlink() const noexcept
+link_handle_t ArchMessage::get_hlink() const noexcept
 {
 	return _hlink;
 }
 
-uint32_t TCPDataQueueNode::get_uid() const noexcept
+uint32_t ArchMessage::get_uid() const noexcept
 {
 	return _uid;
 }
 
-ConnCtrlType TCPDataQueueNode::get_conn_ctrl_type() const noexcept
+ConnCtrlType ArchMessage::get_conn_ctrl_type() const noexcept
 {
 	return _cct;
 }
 
-void TCPDataQueueNode::clear()
+void ArchMessage::clear()
 {
 	if (_dobj)
 	{

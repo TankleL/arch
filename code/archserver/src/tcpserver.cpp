@@ -36,8 +36,8 @@ UVTCPServer::UVTCPServer()
 	memset(&_uv_server, 0, sizeof(_uv_server));
 
 	// set up data queues
-	_in_queue = new TCPDataQueue();
-	_out_queue = new TCPDataQueue();
+	_in_queue = new ArchMessageQueue();
+	_out_queue = new ArchMessageQueue();
 	
 	// set up uv loop
 	_uv_loop = new uv_loop_t;
@@ -181,7 +181,7 @@ void UVTCPServer::_on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *b
 			{
 				if (!iproc->proc_check_switch(svr_inst->_psdestpt, *conn->get_proto_obj()))
 				{
-					TCPDataQueueNode* inode = new TCPDataQueueNode(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid());
+					ArchMessage* inode = new ArchMessage(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid());
 					conn->set_proto_obj(nullptr);
 					conn->get_uvserver()->_in_queue->push(inode);
 				}
@@ -253,7 +253,7 @@ void UVTCPServer::_outing_listen_thread()
 void UVTCPServer::_on_async_send(uv_async_t* handle)
 {
 	UVTCPServer* svr_inst = static_cast<UVTCPServer*>(handle->data);
-	TCPDataQueueNode* onode = nullptr;
+	ArchMessage* onode = nullptr;
 	while (svr_inst->_out_queue->pop(&onode))
 	{
 		svr_inst->_process_outnode(*onode);
@@ -261,7 +261,7 @@ void UVTCPServer::_on_async_send(uv_async_t* handle)
 	}
 }
 
-void UVTCPServer::_process_outnode(const TCPDataQueueNode& node)
+void UVTCPServer::_process_outnode(const ArchMessage& node)
 {
 #ifdef _DEBUG
 	IProtocolObject* obj = dynamic_cast<IProtocolObject*>(node.get_data_object());
@@ -354,7 +354,7 @@ void UVTCPServer::_switch_protocol(TCPConnection* conn)
 			oobj->headers->insert(std::make_pair("Connection", "Upgrade"));
 			oobj->headers->insert(std::make_pair("Sec-WebSocket-Accept", ssa_str));
 
-			TCPDataQueueNode* onode = new TCPDataQueueNode(oobj, conn->get_hlink(), conn->get_uid());
+			ArchMessage* onode = new ArchMessage(oobj, conn->get_hlink(), conn->get_uid());
 			conn->get_uvserver()->_out_queue->push(onode);
 
 			obj->dispose();
@@ -364,7 +364,7 @@ void UVTCPServer::_switch_protocol(TCPConnection* conn)
 			break;
 
 		default:
-			TCPDataQueueNode* onode = new TCPDataQueueNode(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid(), CCT_Close_Immediate);
+			ArchMessage* onode = new ArchMessage(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid(), CCT_Close_Immediate);
 			conn->set_proto_obj(nullptr);
 			conn->get_uvserver()->_out_queue->push(onode);
 		}
@@ -374,7 +374,7 @@ void UVTCPServer::_switch_protocol(TCPConnection* conn)
 	default:
 		// unknown protocol, close connection
 	{
-		TCPDataQueueNode* onode = new TCPDataQueueNode(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid(), CCT_Close_Immediate);
+		ArchMessage* onode = new ArchMessage(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid(), CCT_Close_Immediate);
 		conn->set_proto_obj(nullptr);
 		conn->get_uvserver()->_out_queue->push(onode);
 	}

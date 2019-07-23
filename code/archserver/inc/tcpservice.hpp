@@ -3,7 +3,7 @@
 #include "archserver-prereq.hpp"
 #include "disposable.hpp"
 #include "acquirable.hpp"
-#include "tcpdata-queue.hpp"
+#include "archmessagequeue.hpp"
 
 namespace arch
 {
@@ -16,7 +16,7 @@ namespace arch
 	class IServiceProcessor
 	{
 	public:
-		virtual void process(TCPDataQueue& out_queue, const TCPDataQueueNode& inode) = 0;
+		virtual void process(ArchMessageQueue& out_queue, const ArchMessage& inode) = 0;
 	};
 
 }

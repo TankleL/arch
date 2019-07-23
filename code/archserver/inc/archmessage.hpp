@@ -18,23 +18,23 @@ namespace arch
 	};
 
 	class IServiceDataObject;
-	class TCPDataQueueNode :
-		public IAcquriable<TCPDataQueueNode>
+	class ArchMessage :
+		public IAcquriable<ArchMessage>
 	{
 	public:
-		TCPDataQueueNode();
-		TCPDataQueueNode(TCPDataQueueNode&& rhs) noexcept;
-		TCPDataQueueNode(IServiceDataObject* dobj, link_handle_t hlink, uint32_t uid, ConnCtrlType cct = CCT_None) noexcept;
-		~TCPDataQueueNode();
+		ArchMessage();
+		ArchMessage(ArchMessage&& rhs) noexcept;
+		ArchMessage(IServiceDataObject* dobj, link_handle_t hlink, uint32_t uid, ConnCtrlType cct = CCT_None) noexcept;
+		~ArchMessage();
 
-		TCPDataQueueNode& operator=(TCPDataQueueNode&& rhs) noexcept;
-
-	public:
-		TCPDataQueueNode(const TCPDataQueueNode&) = delete;
-		TCPDataQueueNode& operator=(const TCPDataQueueNode&) = delete;
+		ArchMessage& operator=(ArchMessage&& rhs) noexcept;
 
 	public:
-		TCPDataQueueNode& acquire(TCPDataQueueNode& node) noexcept override;
+		ArchMessage(const ArchMessage&) = delete;
+		ArchMessage& operator=(const ArchMessage&) = delete;
+
+	public:
+		ArchMessage& acquire(ArchMessage& node) noexcept override;
 
 	public:
 		IServiceDataObject*		get_data_object() const noexcept;

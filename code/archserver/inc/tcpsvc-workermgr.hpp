@@ -10,8 +10,8 @@ namespace arch
 	{
 	public:
 		TCPServiceWorkerManager(
-			TCPDataQueue* in_queue,
-			TCPDataQueue* out_queue,
+			ArchMessageQueue* in_queue,
+			ArchMessageQueue* out_queue,
 			IServiceProcessor* svc,
 			int core_number = 6);
 		~TCPServiceWorkerManager();

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "archserver-prereq.hpp"
-#include "tcpdata-queue.hpp"
+#include "archmessagequeue.hpp"
 #include "tcpservice.hpp"
 
 namespace arch
@@ -10,7 +10,7 @@ namespace arch
 	class TCPServiceWorker
 	{
 	public:
-		TCPServiceWorker(TCPDataQueue* in_queue, TCPDataQueue* out_queue, IServiceProcessor* svc) noexcept;
+		TCPServiceWorker(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue, IServiceProcessor* svc) noexcept;
 		~TCPServiceWorker();
 
 	public:
@@ -23,8 +23,8 @@ namespace arch
 
 	protected:
 		std::thread*		_this_thread;
-		TCPDataQueue*		_in_queue;
-		TCPDataQueue*		_out_queue;
+		ArchMessageQueue*		_in_queue;
+		ArchMessageQueue*		_out_queue;
 		IServiceProcessor*	_svc;
 		bool				_abort;
 	};
