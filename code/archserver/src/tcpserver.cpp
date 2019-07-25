@@ -23,21 +23,17 @@ void UVTCPServer::WriteRequest::dispose()
 	delete this;
 }
 
-UVTCPServer::UVTCPServer()
+UVTCPServer::UVTCPServer(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue)
 	: _connmgr(this)
 	, _uv_loop(nullptr)
-	, _in_queue(nullptr)
-	, _out_queue(nullptr)
+	, _in_queue(in_queue)
+	, _out_queue(out_queue)
 	, _workermgr(nullptr)
 	, _othrd(nullptr)
 	, _abort_othrd(false)
 {
 	// intialize uv_server handle
 	memset(&_uv_server, 0, sizeof(_uv_server));
-
-	// set up data queues
-	_in_queue = new ArchMessageQueue();
-	_out_queue = new ArchMessageQueue();
 	
 	// set up uv loop
 	_uv_loop = new uv_loop_t;
@@ -81,8 +77,6 @@ UVTCPServer::~UVTCPServer()
 	}
 
 	safe_delete(_uv_loop);
-	safe_delete(_in_queue);
-	safe_delete(_out_queue);
 }
 
 void UVTCPServer::run(
