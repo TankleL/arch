@@ -1,4 +1,5 @@
-#include "tcpservice-protocols.hpp"
+#include "archserver-prereq.hpp"
+#include "protocols.hpp"
 
 using namespace std;
 using namespace arch;
@@ -76,7 +77,6 @@ ProtocolObjectWebSocket::ProtocolObjectWebSocket()
 {}
 
 ProtocolObjectWebSocket::ProtocolObjectWebSocket(ProtocolObjectWebSocket&& rhs) noexcept
-	: buffer(std::move(rhs.buffer))
 {}
 
 ProtocolObjectWebSocket::~ProtocolObjectWebSocket()
@@ -84,14 +84,12 @@ ProtocolObjectWebSocket::~ProtocolObjectWebSocket()
 
 ProtocolObjectWebSocket& ProtocolObjectWebSocket::operator=(ProtocolObjectWebSocket&& rhs) noexcept
 {
-	buffer = std::move(rhs.buffer);
 	return *this;
 }
 
 IServiceDataObject& ProtocolObjectWebSocket::acquire(IServiceDataObject& src) noexcept
 {
 	ProtocolObjectWebSocket& obj = static_cast<ProtocolObjectWebSocket&>(src);
-	buffer.acquire(obj.buffer);
 	return *this;
 }
 

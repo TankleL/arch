@@ -1,8 +1,7 @@
 #pragma once
 
-#include "archserver-prereq.hpp"
-#include "buffer.hpp"
-#include "tcpservice.hpp"
+#include <map>
+#include "service-dataobj.hpp"
 
 namespace arch
 {
@@ -69,7 +68,7 @@ namespace arch
 		header_list_t*		headers;
 		std::string*		path;
 		int					status_code;
-		index_t				content_length;
+		int					content_length;
 		std::string*		content;
 		std::string*		status_msg;
 	};
@@ -94,7 +93,6 @@ namespace arch
 		void					dispose() noexcept override;
 
 	public:
-		ArchBuffer	buffer;
 	};
 }
 

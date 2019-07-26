@@ -2,7 +2,7 @@
 
 #include "archserver-prereq.hpp"
 #include "uv.h"
-#include "tcpservice.hpp"
+#include "protocols.hpp"
 
 namespace arch
 {

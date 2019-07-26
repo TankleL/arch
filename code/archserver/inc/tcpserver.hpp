@@ -4,7 +4,7 @@
 #include "uv.h"
 #include "archmessagequeue.hpp"
 #include "tcpconn.hpp"
-#include "protocol.hpp"
+#include "protocols.hpp"
 #include "tcpsvc-workermgr.hpp"
 
 namespace arch

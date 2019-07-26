@@ -2,7 +2,7 @@
 
 #include "archserver-prereq.hpp"
 #include "archmessagequeue.hpp"
-#include "tcpservice.hpp"
+#include "service-processor.hpp"
 
 namespace arch
 {

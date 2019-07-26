@@ -1,6 +1,7 @@
 #pragma once
 
-#include "archserver-prereq.hpp"
+#include <mutex>
+#include <queue>
 #include "archmessage.hpp"
 
 namespace arch

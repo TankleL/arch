@@ -1,7 +1,5 @@
 #pragma once
 
-#include "archserver-prereq.hpp"
-
 namespace arch
 {
 	template<typename _T>

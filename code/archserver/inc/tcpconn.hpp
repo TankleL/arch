@@ -4,8 +4,8 @@
 #include "uv.h"
 #include "archmessage.hpp"
 #include "buffer.hpp"
-#include "tcpservice-protocols.hpp"
-#include "protocol.hpp"
+#include "protocols.hpp"
+#include "protocolproc.hpp"
 
 
 namespace arch
