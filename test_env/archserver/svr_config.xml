@@ -1,3 +1,15 @@
 <ArchServer_Config>
 	<Server_Name>Test-Server</Server_Name>
+	<Server_Port>5628</Server_Port>
+	<Connection_Backlog>1000</Connection_Backlog>
+	<Max_Living_Connections>10000</Max_Living_Connections>
+	<Max_ArchMessage_Queue_Length>100000</Max_ArchMessage_Queue_Length>
+	
+	<Modules>
+		<RootPath>C:\public-repos\mine\arch\test_env\archserver\modules</RootPath>
+		<Module>
+			<Protocol></Protocol>
+			<Name>Test Service</Name>
+		</Module>
+	</Modules>
 </ArchServer_Config>
