@@ -18,6 +18,7 @@ namespace arch
 		typedef struct module_st
 		{
 			std::string		name;
+			std::string		bin_name;
 			std::string		proto_type;
 		} module_t;
 

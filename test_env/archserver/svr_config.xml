@@ -10,10 +10,11 @@
 	</ServerPhase>
 		
 	<ModulePhase>
-		<RootPath>C:\public-repos\mine\arch\test_env\archserver\modules</RootPath>
+		<RootPath>G:/repos/arch/test_env/modules</RootPath>
 		<Module>
-			<Name>Test-Service</Name>
-				
+			<Name>Module-Demo</Name>
+			<BinName>mdldemo.dll</BinName>
+			<Binding_Protocoal>HTTP</Binding_Protocoal>
 		</Module>
 	</ModulePhase>
 </ArchServer_Config>

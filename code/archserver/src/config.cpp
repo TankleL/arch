@@ -161,6 +161,10 @@ namespace arch
 					if (ele_name)	mdl.name = ele_name->GetText();
 					else			return false;
 
+					const XMLElement* ele_binname = element.FirstChildElement("BinName");
+					if (ele_name)	mdl.bin_name = ele_binname->GetText();
+					else			return false;
+
 					const XMLElement* ele_binding_proto = element.FirstChildElement("Binding_Protocoal");
 					if (ele_binding_proto)	mdl.proto_type = ele_binding_proto->GetText();
 					else					return false;
