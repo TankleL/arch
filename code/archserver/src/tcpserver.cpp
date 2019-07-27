@@ -334,19 +334,19 @@ void UVTCPServer::_switch_protocol(TCPConnection* conn)
 			ProtocolObjectHttp* obj = static_cast<ProtocolObjectHttp*>(pobj);
 
 			// calculate ssa
-			std::string ssa_str = obj->headers->at("Sec-WebSocket-Key") + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+			std::string ssa_str = obj->headers.at("Sec-WebSocket-Key") + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 			SHA1 sha1;
 			sha1.update(ssa_str);
 			ssa_str = sha1.final_base64();
 
 			ProtocolObjectHttp* oobj = new ProtocolObjectHttp();
 			oobj->status_code = 101;
-			oobj->status_msg->assign("Switching Protocols");
+			oobj->status_msg.assign("Switching Protocols");
 			oobj->version = HVV1_1;
-			oobj->path->assign("/");
-			oobj->headers->insert(std::make_pair("Upgrade", "websocket"));
-			oobj->headers->insert(std::make_pair("Connection", "Upgrade"));
-			oobj->headers->insert(std::make_pair("Sec-WebSocket-Accept", ssa_str));
+			oobj->path.assign("/");
+			oobj->headers.insert(std::make_pair("Upgrade", "websocket"));
+			oobj->headers.insert(std::make_pair("Connection", "Upgrade"));
+			oobj->headers.insert(std::make_pair("Sec-WebSocket-Accept", ssa_str));
 
 			ArchMessage* onode = new ArchMessage(oobj, conn->get_hlink(), conn->get_uid());
 			conn->get_uvserver()->_out_queue->push(onode);

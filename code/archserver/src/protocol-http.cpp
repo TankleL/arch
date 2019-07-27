@@ -150,7 +150,7 @@ ParsingPhase ProtoProcHttp::_proc_istrm_byte(Internal_ProtoObjectHttp& obj, byte
 			if (idx > obj._commit_pos + 1)
 			{
 				const index_t len = idx - obj._commit_pos - 1;
-				_proc_istrm_cpy(*obj.path, obj, read_buf, obj._commit_pos + 1, len);
+				_proc_istrm_cpy(obj.path, obj, read_buf, obj._commit_pos + 1, len);
 				
 				obj._parsing_phase = PPVersion;
 				obj._commit_pos = idx;
@@ -233,7 +233,7 @@ ParsingPhase ProtoProcHttp::_proc_istrm_byte(Internal_ProtoObjectHttp& obj, byte
 					utils::trim(obj._cached_str);
 					utils::trim(value);
 
-					obj.headers->insert(std::make_pair(obj._cached_str, value));
+					obj.headers.insert(std::make_pair(obj._cached_str, value));
 
 					// detect content length
 					if (obj.content_length == 0 && obj._cached_str == "Content-Length")
@@ -253,7 +253,7 @@ ParsingPhase ProtoProcHttp::_proc_istrm_byte(Internal_ProtoObjectHttp& obj, byte
 				}
 				else if (len == 2)
 				{
-					obj.headers->insert(std::make_pair(obj._cached_str, ""));
+					obj.headers.insert(std::make_pair(obj._cached_str, ""));
 				}
 				else
 				{
@@ -379,16 +379,16 @@ bool ProtoProcHttp::proc_check_switch(ProtocolType& dest_proto, const IProtocolO
 	bool retval = false;
 	const Internal_ProtoObjectHttp& sobj = static_cast<const Internal_ProtoObjectHttp&>(obj);
 
-	const auto seg_connection = sobj.headers->find("Connection");
-	if (sobj.headers->end() != seg_connection && "Upgrade" == seg_connection->second)
+	const auto seg_connection = sobj.headers.find("Connection");
+	if (sobj.headers.end() != seg_connection && "Upgrade" == seg_connection->second)
 	{
-		const auto seg_upgrade = sobj.headers->find("Upgrade");
-		if (sobj.headers->end() != seg_upgrade)
+		const auto seg_upgrade = sobj.headers.find("Upgrade");
+		if (sobj.headers.end() != seg_upgrade)
 		{
 			if (seg_upgrade->second == "websocket")
 			{
-				const auto seg_wsa = sobj.headers->find("Sec-WebSocket-Accept");
-				if (sobj.headers->end() != seg_wsa && seg_wsa->second.length() > 0)
+				const auto seg_wsa = sobj.headers.find("Sec-WebSocket-Accept");
+				if (sobj.headers.end() != seg_wsa && seg_wsa->second.length() > 0)
 				{
 					retval = true;
 					dest_proto = PT_WebSocket;
