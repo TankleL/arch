@@ -39,6 +39,10 @@ bool Module::init()
 		}
 
 		retval = retval && (0 == _i_module_init());
+		if (!retval)
+		{
+			osys::dll_unload(_hmodule);
+		}
 	}
 	else
 	{
