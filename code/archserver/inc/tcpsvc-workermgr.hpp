@@ -2,6 +2,7 @@
 
 #include "archserver-prereq.hpp"
 #include "tcpsvc-worker.hpp"
+#include "module.hpp"
 
 namespace arch
 {
@@ -12,7 +13,7 @@ namespace arch
 		TCPServiceWorkerManager(
 			ArchMessageQueue* in_queue,
 			ArchMessageQueue* out_queue,
-			IServiceProcessor* svc,
+			ModuleManager* mm,
 			int core_number = 6);
 		~TCPServiceWorkerManager();
 

@@ -3,6 +3,7 @@
 #include "archserver-prereq.hpp"
 #include "archmessagequeue.hpp"
 #include "service-processor.hpp"
+#include "module.hpp"
 
 namespace arch
 {
@@ -10,7 +11,7 @@ namespace arch
 	class TCPServiceWorker
 	{
 	public:
-		TCPServiceWorker(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue, IServiceProcessor* svc) noexcept;
+		TCPServiceWorker(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue, ModuleManager* mm) noexcept;
 		~TCPServiceWorker();
 
 	public:
@@ -22,11 +23,11 @@ namespace arch
 		void _thread();
 
 	protected:
-		std::thread*		_this_thread;
+		std::thread*			_this_thread;
 		ArchMessageQueue*		_in_queue;
 		ArchMessageQueue*		_out_queue;
-		IServiceProcessor*	_svc;
-		bool				_abort;
+		ModuleManager*			_mm;
+		bool					_abort;
 	};
 
 }

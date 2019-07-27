@@ -9,10 +9,12 @@ namespace arch
 
 		typedef struct server_phase_st
 		{
-			int		port;
-			int		backlog;
-			int		max_living_conn;
-			int		max_archmsg_queue_len;
+			std::string		ipaddr;
+			int				port;
+			int				backlog;
+			int				core_num;
+			int				max_living_conn;
+			int				max_archmsg_queue_len;
 		} server_phase_t;
 
 		typedef struct module_st

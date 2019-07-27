@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-#include <service-dataobj.hpp>
+#include <protocols.hpp>
 
 namespace arch
 {
@@ -21,7 +21,7 @@ namespace arch
 	public:
 		ArchMessage();
 		ArchMessage(ArchMessage&& rhs) noexcept;
-		ArchMessage(IServiceDataObject* dobj, link_handle_t hlink, uint32_t uid, ConnCtrlType cct = CCT_None) noexcept;
+		ArchMessage(IProtocolObject* dobj, link_handle_t hlink, uint32_t uid, ConnCtrlType cct = CCT_None) noexcept;
 		~ArchMessage();
 
 		ArchMessage& operator=(ArchMessage&& rhs) noexcept;
@@ -31,14 +31,14 @@ namespace arch
 		ArchMessage& operator=(const ArchMessage&) = delete;
 
 	public:
-		IServiceDataObject*		get_data_object() const noexcept;
+		IProtocolObject*		get_data_object() const noexcept;
 		link_handle_t			get_hlink() const noexcept;
 		uint32_t				get_uid() const noexcept;
 		ConnCtrlType			get_conn_ctrl_type() const noexcept;
 		void					clear();
 
 	protected:
-		IServiceDataObject*	_dobj;
+		IProtocolObject*	_dobj;
 		link_handle_t		_hlink;
 		uint32_t			_uid;
 		ConnCtrlType		_cct;
@@ -64,7 +64,7 @@ namespace arch
 		rhs._cct = CCT_None;
 	}
 
-	inline ArchMessage::ArchMessage(IServiceDataObject* dobj, link_handle_t hlink, uint32_t uid, ConnCtrlType cct) noexcept
+	inline ArchMessage::ArchMessage(IProtocolObject* dobj, link_handle_t hlink, uint32_t uid, ConnCtrlType cct) noexcept
 		: _dobj(dobj)
 		, _hlink(hlink)
 		, _uid(uid)
@@ -85,7 +85,7 @@ namespace arch
 		return *this;
 	}
 
-	inline IServiceDataObject* ArchMessage::get_data_object() const noexcept
+	inline IProtocolObject* ArchMessage::get_data_object() const noexcept
 	{
 		return _dobj;
 	}

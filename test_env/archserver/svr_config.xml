@@ -3,8 +3,10 @@
 	</Global_KeyValue>
 	
 	<ServerPhase>
+		<IPAddress>0.0.0.0</IPAddress>
 		<Port>5628</Port>
 		<Backlog>1000</Backlog>
+		<CoreNumber>6</CoreNumber>
 		<Max_Living_Connections>100000</Max_Living_Connections>
 		<Max_ArchMessage_Queue_Length>100000</Max_ArchMessage_Queue_Length>
 	</ServerPhase>

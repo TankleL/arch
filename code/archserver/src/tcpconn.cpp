@@ -10,7 +10,7 @@ using namespace arch;
 ********************************************************************/
 
 TCPConnection::TCPConnection(
-	UVTCPServer* uvserver,
+	TCPServer* uvserver,
 	uint64_t cid,
 	uv_stream_t* hlink,
 	ProtocolType iproto_type,
@@ -30,7 +30,7 @@ TCPConnection::~TCPConnection()
 	if(_protoobj)	_protoobj->dispose();
 }
 
-UVTCPServer* TCPConnection::get_uvserver() const noexcept
+TCPServer* TCPConnection::get_uvserver() const noexcept
 {
 	return _uvserver;
 }
@@ -84,7 +84,7 @@ void TCPConnection::set_oproto_type(ProtocolType type) noexcept
 *                       TCPConnectionManager                        *
 ********************************************************************/
 
-TCPConnectionManager::TCPConnectionManager(UVTCPServer* uvserver) noexcept
+TCPConnectionManager::TCPConnectionManager(TCPServer* uvserver) noexcept
 	: _cidtop(0)
 	, _uvserver(uvserver)
 {}
@@ -114,7 +114,7 @@ void TCPConnectionManager::del_connection(uint64_t cid) noexcept
 	return _free_conn(cid);
 }
 
-UVTCPServer* TCPConnectionManager::get_server() const noexcept
+TCPServer* TCPConnectionManager::get_server() const noexcept
 {
 	return _uvserver;
 }

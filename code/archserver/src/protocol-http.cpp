@@ -426,7 +426,7 @@ Internal_ProtoObjectHttp& Internal_ProtoObjectHttp::operator=(Internal_ProtoObje
 Internal_ProtoObjectHttp::~Internal_ProtoObjectHttp()
 {}
 
-IServiceDataObject& Internal_ProtoObjectHttp::acquire(IServiceDataObject& src) noexcept
+IProtocolObject& Internal_ProtoObjectHttp::acquire(IProtocolObject& src) noexcept
 {
 #ifdef _DEBUG
 	Internal_ProtoObjectHttp& obj = dynamic_cast<Internal_ProtoObjectHttp&>(src);

@@ -124,14 +124,21 @@ namespace arch
 			{
 				const char* name = element.Name();
 
-				if (strcmp(name, "Port") == 0)
+				if (strcmp(name, "IPAddress") == 0)
 				{
-					stringstream ss;
+					server_phase.ipaddr = element.GetText();
+				}
+				else if (strcmp(name, "Port") == 0)
+				{
 					server_phase.port = element.IntText();
 				}
 				else if (strcmp(name, "Backlog") == 0)
 				{ 
 					server_phase.backlog = element.IntText();
+				}
+				else if (strcmp(name, "CoreNumber") == 0)
+				{
+					server_phase.core_num = element.IntText();
 				}
 				else if (strcmp(name, "Max_Living_Connections") == 0)
 				{

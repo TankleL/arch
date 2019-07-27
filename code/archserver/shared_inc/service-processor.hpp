@@ -10,7 +10,7 @@ namespace arch
 	class IServiceProcessor
 	{
 	public:
-		virtual void process(ArchMessageQueue& out_queue, const ArchMessage& inode) = 0;
+		virtual void process(ArchMessage& onode, const ArchMessage& inode) = 0;
 	};
 
 }

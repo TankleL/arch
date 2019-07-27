@@ -16,6 +16,7 @@ Module::Module(
 	, _hmodule(nullptr)
 	, _i_module_init(nullptr)
 	, _i_module_uninit(nullptr)
+	, _i_module_service_proc(nullptr)
 {}
 
 bool Module::init()
@@ -58,6 +59,28 @@ void Module::uninit()
 	osys::dll_unload(_hmodule);
 }
 
+void Module::process(ArchMessage& onode, const ArchMessage& inode)
+{
+
+}
+
+ModuleManager::ModuleManager()
+	: _modules{ nullptr }
+{}
+
+ModuleManager::~ModuleManager()
+{
+	unload_all_modules();
+}
+
+Module& ModuleManager::get_module(ProtocolType proto_type) const
+{
+	assert(proto_type >= 0 && proto_type < PT_ProtoTypesNum);
+	if (_modules[proto_type])
+	{
+		return *_modules[proto_type];
+	}
+}
 
 ProtocolType ModuleManager::_get_protocol_type(const std::string& proto_type)
 {
@@ -94,11 +117,13 @@ void ModuleManager::load_all_modules()
 
 void ModuleManager::unload_all_modules()
 {
-	for (const auto& m : _modules)
+	for (auto& m : _modules)
 	{
-		m.second->uninit();
-		delete m.second;
+		if (m)
+		{
+			m->uninit();
+			delete m;
+			m = nullptr;
+		}
 	}
-
-	_modules.clear();
 }

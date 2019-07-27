@@ -5,7 +5,7 @@
 using namespace std;
 using namespace arch;
 
-UVTCPServer::WriteRequest::WriteRequest(std::string* buffer, uv_handle_t* hlink, bool close_connection)
+TCPServer::WriteRequest::WriteRequest(std::string* buffer, uv_handle_t* hlink, bool close_connection)
 	: link(hlink)
 	, str(buffer)
 	, close_conn(close_connection)
@@ -15,7 +15,7 @@ UVTCPServer::WriteRequest::WriteRequest(std::string* buffer, uv_handle_t* hlink,
 	buf.len = (uint32_t)buffer->size();
 }
 
-void UVTCPServer::WriteRequest::dispose()
+void TCPServer::WriteRequest::dispose()
 {
 	safe_delete(str);
 	buf.base = nullptr;
@@ -23,7 +23,7 @@ void UVTCPServer::WriteRequest::dispose()
 	delete this;
 }
 
-UVTCPServer::UVTCPServer(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue)
+TCPServer::TCPServer(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue)
 	: _connmgr(this)
 	, _uv_loop(nullptr)
 	, _in_queue(in_queue)
@@ -58,10 +58,10 @@ UVTCPServer::UVTCPServer(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue
 		}
 	}
 
-	_othrd = new std::thread(std::bind(&UVTCPServer::_outing_listen_thread, this));
+	_othrd = new std::thread(std::bind(&TCPServer::_outing_listen_thread, this));
 }
 
-UVTCPServer::~UVTCPServer()
+TCPServer::~TCPServer()
 {
 	_workermgr->abort();
 	_workermgr->wait();
@@ -79,8 +79,8 @@ UVTCPServer::~UVTCPServer()
 	safe_delete(_uv_loop);
 }
 
-void UVTCPServer::run(
-	IServiceProcessor* svc,
+void TCPServer::run(
+	ModuleManager* mm,
 	const std::string& ipaddr,
 	int port,
 	int backlog,
@@ -92,7 +92,7 @@ void UVTCPServer::run(
 	uv_ip4_addr(ipaddr.c_str(), port, &addr);
 	uv_tcp_bind(&_uv_server, (const sockaddr*)&addr, 0);
 
-	_workermgr = new TCPServiceWorkerManager(_in_queue, _out_queue, svc, core_number);
+	_workermgr = new TCPServiceWorkerManager(_in_queue, _out_queue, mm, core_number);
 	_workermgr->start();
 
 	_uv_server.data = this;
@@ -101,9 +101,9 @@ void UVTCPServer::run(
 	uv_run(_uv_loop, UV_RUN_DEFAULT);
 }
 
-void UVTCPServer::_on_connect(uv_stream_t *server, int status)
+void TCPServer::_on_connect(uv_stream_t *server, int status)
 {
-	UVTCPServer*	svr_inst = static_cast<UVTCPServer*>(server->data);
+	TCPServer*	svr_inst = static_cast<TCPServer*>(server->data);
 
 	if (status >= 0)
 	{
@@ -136,12 +136,12 @@ void UVTCPServer::_on_connect(uv_stream_t *server, int status)
 	}
 }
 
-void UVTCPServer::_on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf)
+void TCPServer::_on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf)
 {
 	if (nread >= 0)
 	{
 		TCPConnection*	conn = static_cast<TCPConnection*>(client->data);
-		UVTCPServer* svr_inst = conn->get_uvserver();
+		TCPServer* svr_inst = conn->get_uvserver();
 
 		assert(conn);
 		assert(conn->get_iproto_type() < PT_ProtoTypesNum);
@@ -204,12 +204,12 @@ void UVTCPServer::_on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *b
 	_on_free_buf(buf);
 }
 
-void UVTCPServer::_on_close(uv_handle_t* handle)
+void TCPServer::_on_close(uv_handle_t* handle)
 {
 	TCPConnection* conn = static_cast<TCPConnection*>(handle->data);
 	assert(conn);
 	
-	UVTCPServer* svr_inst = conn->get_uvserver();
+	TCPServer* svr_inst = conn->get_uvserver();
 	assert(svr_inst);
 
 	svr_inst->_connmgr.del_connection(conn->get_hlink());
@@ -218,18 +218,18 @@ void UVTCPServer::_on_close(uv_handle_t* handle)
 	// from now on, conn has been released, don not use it any longer!!
 }
 
-void UVTCPServer::_on_alloc_buf(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
+void TCPServer::_on_alloc_buf(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 {
 	buf->base = new char[suggested_size];
 	buf->len = (uint32_t)suggested_size;
 }
 
-void UVTCPServer::_on_free_buf(const uv_buf_t* buf)
+void TCPServer::_on_free_buf(const uv_buf_t* buf)
 {
 	delete[] buf->base;
 }
 
-void UVTCPServer::_outing_listen_thread()
+void TCPServer::_outing_listen_thread()
 {
 	while (!_abort_othrd)
 	{
@@ -244,9 +244,9 @@ void UVTCPServer::_outing_listen_thread()
 	}
 }
 
-void UVTCPServer::_on_async_send(uv_async_t* handle)
+void TCPServer::_on_async_send(uv_async_t* handle)
 {
-	UVTCPServer* svr_inst = static_cast<UVTCPServer*>(handle->data);
+	TCPServer* svr_inst = static_cast<TCPServer*>(handle->data);
 	ArchMessage* onode = nullptr;
 	while (svr_inst->_out_queue->pop(&onode))
 	{
@@ -255,7 +255,7 @@ void UVTCPServer::_on_async_send(uv_async_t* handle)
 	}
 }
 
-void UVTCPServer::_process_outnode(const ArchMessage& node)
+void TCPServer::_process_outnode(const ArchMessage& node)
 {
 #ifdef _DEBUG
 	IProtocolObject* obj = dynamic_cast<IProtocolObject*>(node.get_data_object());
@@ -301,7 +301,7 @@ void UVTCPServer::_process_outnode(const ArchMessage& node)
 	}
 }
 
-void UVTCPServer::_after_write(uv_write_t *req, int status)
+void TCPServer::_after_write(uv_write_t *req, int status)
 {
 	assert(req);
 
@@ -318,7 +318,7 @@ void UVTCPServer::_after_write(uv_write_t *req, int status)
 	wr->dispose();
 }
 
-void UVTCPServer::_switch_protocol(TCPConnection* conn)
+void TCPServer::_switch_protocol(TCPConnection* conn)
 {
 	switch (_psdestpt)
 	{

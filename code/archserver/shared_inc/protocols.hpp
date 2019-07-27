@@ -1,7 +1,8 @@
 #pragma once
 
 #include <map>
-#include "service-dataobj.hpp"
+#include "acquirable.hpp"
+#include "disposable.hpp"
 
 namespace arch
 {
@@ -27,7 +28,8 @@ namespace arch
 	/******************************************************************/
 
 	class IProtocolObject
-		: public IServiceDataObject
+		: public IDisposable
+		, public IAcquriable<IProtocolObject>
 	{
 	public:
 		virtual ProtocolType	get_protocol_type() const noexcept = 0;
@@ -71,7 +73,7 @@ namespace arch
 
 	public:
 		virtual ProtocolType	get_protocol_type() const noexcept override	{ return PT_Http; }
-		IServiceDataObject&		acquire(IServiceDataObject& src) noexcept override;
+		IProtocolObject&		acquire(IProtocolObject& src) noexcept override;
 		void					dispose() noexcept override;
 
 	public:
@@ -109,7 +111,7 @@ namespace arch
 
 	public:
 		virtual ProtocolType	get_protocol_type() const noexcept override { return PT_WebSocket; }
-		IServiceDataObject&		acquire(IServiceDataObject& src) noexcept override;
+		IProtocolObject&		acquire(IProtocolObject& src) noexcept override;
 		void					dispose() noexcept override;
 
 	public:
@@ -155,7 +157,7 @@ namespace arch
 		return *this;
 	}
 
-	inline IServiceDataObject& ProtocolObjectHttp::acquire(IServiceDataObject& src) noexcept
+	inline IProtocolObject& ProtocolObjectHttp::acquire(IProtocolObject& src) noexcept
 	{
 		ProtocolObjectHttp& obj = static_cast<ProtocolObjectHttp&>(src);
 		method = obj.method;
@@ -197,7 +199,7 @@ namespace arch
 		return *this;
 	}
 
-	inline IServiceDataObject& ProtocolObjectWebSocket::acquire(IServiceDataObject& src) noexcept
+	inline IProtocolObject& ProtocolObjectWebSocket::acquire(IProtocolObject& src) noexcept
 	{
 		ProtocolObjectWebSocket& obj = static_cast<ProtocolObjectWebSocket&>(src);
 		return *this;

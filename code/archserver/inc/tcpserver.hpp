@@ -6,19 +6,20 @@
 #include "tcpconn.hpp"
 #include "protocols.hpp"
 #include "tcpsvc-workermgr.hpp"
+#include "module.hpp"
 
 namespace arch
 {
 
-	class UVTCPServer
+	class TCPServer
 	{
 	public:
-		UVTCPServer(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue);
-		~UVTCPServer();
+		TCPServer(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue);
+		~TCPServer();
 
 	public:
 		void run(
-			IServiceProcessor* svc,
+			ModuleManager* mm,
 			const std::string& ipaddr = "0.0.0.0",
 			int port = 5011,
 			int backlog = 128,

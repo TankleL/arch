@@ -57,7 +57,7 @@ namespace arch
 		Internal_ProtoObjectHttp& operator=(Internal_ProtoObjectHttp&& rhs) noexcept;
 
 	public:
-		virtual IServiceDataObject& acquire(IServiceDataObject& src) noexcept override;
+		virtual IProtocolObject& acquire(IProtocolObject& src) noexcept override;
 		virtual void dispose() noexcept override;
 
 	protected:

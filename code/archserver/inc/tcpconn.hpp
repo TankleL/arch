@@ -10,7 +10,7 @@
 
 namespace arch
 {
-	class UVTCPServer;
+	class TCPServer;
 	class TCPConnectionManager;
 
 	class TCPConnection
@@ -20,7 +20,7 @@ namespace arch
 		virtual ~TCPConnection();
 
 	public:
-		UVTCPServer*		get_uvserver() const noexcept;
+		TCPServer*		get_uvserver() const noexcept;
 		uint64_t			get_cid() const noexcept;
 		uv_stream_t*		get_hlink() const noexcept;
 		IProtocolObject*	get_proto_obj() const noexcept;
@@ -34,7 +34,7 @@ namespace arch
 
 	protected:
 		TCPConnection(
-			UVTCPServer* uvserver,
+			TCPServer* uvserver,
 			uint64_t cid,
 			uv_stream_t* hlink,
 			ProtocolType iproto_type = PT_Http,
@@ -45,7 +45,7 @@ namespace arch
 		uint64_t			_cid;			// correlation id
 		uint32_t			_uid;			// user id
 		uv_stream_t*		_hlink;			// link handle
-		UVTCPServer*		_uvserver;		// uv server
+		TCPServer*		_uvserver;		// uv server
 		IProtocolObject*	_protoobj;		// protocol cache object
 		ProtocolType		_iproto_type;	// input protocol type
 		ProtocolType		_oproto_type;	// output protocol type
@@ -54,7 +54,7 @@ namespace arch
 	class TCPConnectionManager
 	{
 	public:
-		TCPConnectionManager(UVTCPServer* uvserver) noexcept;
+		TCPConnectionManager(TCPServer* uvserver) noexcept;
 
 	public:
 		TCPConnection* new_connection(uv_stream_t* hlink, ProtocolType itype, ProtocolType otype);
@@ -63,7 +63,7 @@ namespace arch
 		void del_connection(uv_stream_t* hlink) noexcept;
 		void del_connection(uint64_t cid) noexcept;
 
-		UVTCPServer* get_server() const noexcept;
+		TCPServer* get_server() const noexcept;
 
 	protected:
 		TCPConnection* _alloc_conn(uv_stream_t* hlink, ProtocolType itype, ProtocolType otype);
@@ -81,7 +81,7 @@ namespace arch
 		MapCid2Conn			_map_cid2conn;
 
 		uint64_t			_cidtop;
-		UVTCPServer*		_uvserver;
+		TCPServer*		_uvserver;
 	};
 }
 

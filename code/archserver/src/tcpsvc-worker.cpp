@@ -3,14 +3,16 @@
 
 using namespace arch;
 
-TCPServiceWorker::TCPServiceWorker(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue, IServiceProcessor* svc) noexcept
+TCPServiceWorker::TCPServiceWorker(
+	ArchMessageQueue* in_queue, 
+	ArchMessageQueue* out_queue,
+	ModuleManager* mm) noexcept
 	: _this_thread(nullptr)
 	, _in_queue(in_queue)
 	, _out_queue(out_queue)
-	, _svc(svc)
+	, _mm(mm)
 	, _abort(false)
 {}
-
 
 TCPServiceWorker::~TCPServiceWorker()
 {
@@ -49,8 +51,12 @@ void TCPServiceWorker::_thread()
 			ArchMessage*	inode = nullptr;
 			if (_in_queue->pop(&inode))
 			{
-				_svc->process(*_out_queue, *inode);
+				ArchMessage* onode = new ArchMessage();
+
+				Module& mdl = _mm->get_module(inode->get_data_object()->get_protocol_type());
+				mdl.process(*onode, *inode);
 				delete inode;
+				_out_queue->push(onode);
 			}
 			else
 			{
