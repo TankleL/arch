@@ -31,9 +31,14 @@ namespace arch
 			uv_buf_t		buf;
 			uv_handle_t*	link;
 			std::string*	str;
-			bool			close_conn;
+			ConnCtrlType	cct;
+			TCPConnection*	conn;
 
-			WriteRequest(std::string* buffer, uv_handle_t* hlink, bool close_connection = false);
+			WriteRequest(
+				std::string* buffer,
+				uv_handle_t* hlink,
+				TCPConnection* connection,
+				ConnCtrlType conn_ctrl_type);
 			void dispose();
 		} write_req_t;
 

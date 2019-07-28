@@ -1,14 +1,20 @@
 #include "sha1.hpp"
 #include "tcpserver.hpp"
 #include "protocol-http.hpp"
+#include "protocol-websocket.hpp"
 
 using namespace std;
 using namespace arch;
 
-TCPServer::WriteRequest::WriteRequest(std::string* buffer, uv_handle_t* hlink, bool close_connection)
+TCPServer::WriteRequest::WriteRequest(
+	std::string* buffer,
+	uv_handle_t* hlink,
+	TCPConnection* connection,
+	ConnCtrlType conn_ctrl_type)
 	: link(hlink)
 	, str(buffer)
-	, close_conn(close_connection)
+	, conn(connection)
+	, cct(conn_ctrl_type)
 {
 	memset(&req, 0, sizeof(req));
 	buf.base = (char*)buffer->data();
@@ -51,6 +57,10 @@ TCPServer::TCPServer(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue)
 		{
 		case PT_Http:
 			_proto_procs[proto_type] = new ProtoProcHttp();
+			break;
+
+		case PT_WebSocket:
+			_proto_procs[proto_type] = new ProtoProcWebSocket();
 			break;
 
 		default:
@@ -153,6 +163,10 @@ void TCPServer::_on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf
 			{
 			case PT_Http:
 				conn->set_proto_obj(new Internal_ProtoObjectHttp());
+				break;
+
+			case PT_WebSocket:
+				conn->set_proto_obj(new Internal_ProtoObjectWebSocket());
 				break;
 
 			default:
@@ -277,7 +291,13 @@ void TCPServer::_process_outnode(const ArchMessage& node)
 			{
 				std::string* obuffer = new std::string();
 				oproc->proc_ostrm(*obuffer, *obj);
-				write_req_t* req = new write_req_t(obuffer, (uv_handle_t*)node.get_hlink(), node.get_conn_ctrl_type());
+
+				write_req_t* req = new write_req_t(
+					obuffer,
+					(uv_handle_t*)node.get_hlink(),
+					conn,
+					node.get_conn_ctrl_type());
+				
 				uv_write(
 					(uv_write_t*)req,
 					(uv_stream_t*)node.get_hlink(),
@@ -314,10 +334,18 @@ void TCPServer::_after_write(uv_write_t *req, int status)
 	}
 
 	write_req_t* wr = (write_req_t*)req;
-	if (CCT_Close_AfterSend == wr->close_conn)
+
+	switch (wr->cct)
 	{
+	case CCT_Close_AfterSend:
 		uv_close(wr->link, _on_close);
+		break;
+
+	case CCT_Switch_AfterSend_ToWebSocket:
+		wr->conn->set_oproto_type(PT_WebSocket);
+		break;
 	}
+
 	wr->dispose();
 }
 
@@ -338,6 +366,7 @@ void TCPServer::_switch_protocol(TCPConnection* conn)
 
 			// calculate ssa
 			std::string ssa_str = obj->headers.at("Sec-WebSocket-Key") + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
 			SHA1 sha1;
 			sha1.update(ssa_str);
 			ssa_str = sha1.final_base64();
@@ -350,6 +379,12 @@ void TCPServer::_switch_protocol(TCPConnection* conn)
 			oobj->headers.insert(std::make_pair("Upgrade", "websocket"));
 			oobj->headers.insert(std::make_pair("Connection", "Upgrade"));
 			oobj->headers.insert(std::make_pair("Sec-WebSocket-Accept", ssa_str));
+
+			const auto& ws_proto = obj->headers.find("Sec-WebSocket-Protocol");
+			if (ws_proto != obj->headers.end())
+			{
+				oobj->headers.insert(std::make_pair("Sec-WebSocket-Protocol", ws_proto->second));
+			}
 
 			ArchMessage* onode = new ArchMessage(oobj, conn->get_hlink(), conn->get_uid());
 			conn->get_uvserver()->_out_queue->push(onode);

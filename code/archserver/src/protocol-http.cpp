@@ -361,13 +361,35 @@ bool ProtoProcHttp::proc_ostrm(std::string& obuffer, const IProtocolObject& src)
 {
 	const ProtocolObjectHttp& obj = static_cast<const ProtocolObjectHttp&>(src);
 
-	char ch_buf[16];
-	memset(ch_buf, 0, sizeof(ch_buf));
+	switch (obj.version)
+	{
+	case HVV1_1:
+		obuffer.append("HTTP/1.1 ");
+		break;
 
-	obuffer.append("HTTP/1.1 ");
-	obuffer.append(_itoa(obj.status_code, ch_buf, 10));
-	obuffer.append(" OK\r\n");
+	case HVV2:
+		obuffer.append("HTTP/2.0 ");
+		break;
 
+	case HVV1:
+	default:
+		obuffer.append("HTTP/1.0 ");
+		break;
+	}
+
+	obuffer.append(std::to_string(obj.status_code));
+	obuffer.append(" ");
+	obuffer.append(obj.status_msg);
+
+	obuffer.append("\r\n");
+
+	for (const auto& h : obj.headers)
+	{
+		obuffer.append(h.first);
+		obuffer.append(": ");
+		obuffer.append(h.second);
+		obuffer.append("\r\n");
+	}
 
 	obuffer.append("\r\n");
 
@@ -387,7 +409,7 @@ bool ProtoProcHttp::proc_check_switch(ProtocolType& dest_proto, const IProtocolO
 		{
 			if (seg_upgrade->second == "websocket")
 			{
-				const auto seg_wsa = sobj.headers.find("Sec-WebSocket-Accept");
+				const auto seg_wsa = sobj.headers.find("Sec-WebSocket-Key");
 				if (sobj.headers.end() != seg_wsa && seg_wsa->second.length() > 0)
 				{
 					retval = true;
