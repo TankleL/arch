@@ -52,7 +52,7 @@ namespace arch
 		void	unload_all_modules();
 
 	public:
-		Module& get_module(ProtocolType proto_type) const;
+		Module* get_module(ProtocolType proto_type) const;
 
 	private:
 		ProtocolType _get_protocol_type(const std::string& proto_type);

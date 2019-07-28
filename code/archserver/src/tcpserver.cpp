@@ -259,19 +259,18 @@ void TCPServer::_process_outnode(const ArchMessage& node)
 {
 #ifdef _DEBUG
 	IProtocolObject* obj = dynamic_cast<IProtocolObject*>(node.get_data_object());
-	assert(obj);
 #else
 	IProtocolObject* obj = static_cast<IProtocolObject*>(node.get_data_object());
 #endif // _DEBUG
 
-
-	ProtocolType otype = obj->get_protocol_type();
-	assert(otype < PT_ProtoTypesNum);
-
-	IProtocolProc* oproc = _proto_procs[otype];
 	TCPConnection* conn = _connmgr.get_connection((uv_stream_t*)node.get_hlink());
-	if (conn)
+	if (obj && conn)
 	{
+		ProtocolType otype = obj->get_protocol_type();
+		assert(otype < PT_ProtoTypesNum);
+
+		IProtocolProc* oproc = _proto_procs[otype];
+		
 		if (CCT_Close_Immediate != node.get_conn_ctrl_type())
 		{
 			try
@@ -298,6 +297,10 @@ void TCPServer::_process_outnode(const ArchMessage& node)
 		{
 			uv_close((uv_handle_t*)conn->get_hlink(), _on_close);
 		}
+	}
+	else if(!obj && conn)
+	{
+		uv_close((uv_handle_t*)conn->get_hlink(), _on_close);
 	}
 }
 

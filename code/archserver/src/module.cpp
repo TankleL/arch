@@ -34,6 +34,10 @@ bool Module::init()
 			osys::dll_symbol(_hmodule, "arch_module_uninit"));
 		retval = retval && _i_module_uninit != nullptr;
 
+		_i_module_service_proc = static_cast<module_service_proc_fp_t>(
+			osys::dll_symbol(_hmodule, "arch_service_processor"));
+		retval = retval && _i_module_service_proc != nullptr;
+
 		if (!retval)
 		{
 			osys::dll_unload(_hmodule);
@@ -61,7 +65,9 @@ void Module::uninit()
 
 void Module::process(ArchMessage& onode, const ArchMessage& inode)
 {
+	assert(_i_module_service_proc);
 
+	_i_module_service_proc(onode, inode);
 }
 
 ModuleManager::ModuleManager()
@@ -73,13 +79,10 @@ ModuleManager::~ModuleManager()
 	unload_all_modules();
 }
 
-Module& ModuleManager::get_module(ProtocolType proto_type) const
+Module* ModuleManager::get_module(ProtocolType proto_type) const
 {
 	assert(proto_type >= 0 && proto_type < PT_ProtoTypesNum);
-	if (_modules[proto_type])
-	{
-		return *_modules[proto_type];
-	}
+	return _modules[proto_type];
 }
 
 ProtocolType ModuleManager::_get_protocol_type(const std::string& proto_type)

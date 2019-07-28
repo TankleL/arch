@@ -51,10 +51,11 @@ void TCPServiceWorker::_thread()
 			ArchMessage*	inode = nullptr;
 			if (_in_queue->pop(&inode))
 			{
-				ArchMessage* onode = new ArchMessage();
+				ArchMessage* onode = new ArchMessage(nullptr, inode->get_hlink(), inode->get_uid());
 
-				Module& mdl = _mm->get_module(inode->get_data_object()->get_protocol_type());
-				mdl.process(*onode, *inode);
+				Module* mdl = _mm->get_module(inode->get_data_object()->get_protocol_type());
+				if(mdl)	mdl->process(*onode, *inode);
+
 				delete inode;
 				_out_queue->push(onode);
 			}

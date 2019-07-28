@@ -4,7 +4,7 @@
 	
 	<ServerPhase>
 		<IPAddress>0.0.0.0</IPAddress>
-		<Port>5628</Port>
+		<Port>8088</Port>
 		<Backlog>1000</Backlog>
 		<CoreNumber>6</CoreNumber>
 		<Max_Living_Connections>100000</Max_Living_Connections>

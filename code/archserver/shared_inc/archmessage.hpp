@@ -31,6 +31,9 @@ namespace arch
 		ArchMessage& operator=(const ArchMessage&) = delete;
 
 	public:
+		void					set_data_object(IProtocolObject* dobj) noexcept;
+		void					set_conn_ctrl_type(ConnCtrlType cct) noexcept;
+
 		IProtocolObject*		get_data_object() const noexcept;
 		link_handle_t			get_hlink() const noexcept;
 		uint32_t				get_uid() const noexcept;
@@ -83,6 +86,16 @@ namespace arch
 		_uid = rhs._uid;				rhs._uid = 0;
 		_cct = rhs._cct;				rhs._cct = CCT_None;
 		return *this;
+	}
+
+	inline void ArchMessage::set_data_object(IProtocolObject* dobj) noexcept
+	{
+		_dobj = dobj;
+	}
+
+	inline void ArchMessage::set_conn_ctrl_type(ConnCtrlType cct) noexcept
+	{
+		_cct = cct;
 	}
 
 	inline IProtocolObject* ArchMessage::get_data_object() const noexcept
