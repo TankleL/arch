@@ -83,12 +83,6 @@ ProtoProcRet ProtoProcHttp::proc_istrm(IProtocolObject& dest, const uv_buf_t* uv
 		}
 	}
 
-	if (PPR_PULSE == retval)
-	{
-
-	}
-	
-	
 	return retval;
 }
 

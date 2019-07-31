@@ -43,9 +43,6 @@ namespace arch
 	{
 		friend ProtoProcHttp;
 	public:
-		typedef std::vector<byte_t>					buffer_t;
-
-	public:
 		Internal_ProtoObjectHttp(const Internal_ProtoObjectHttp&) = delete;
 		Internal_ProtoObjectHttp& operator=(const Internal_ProtoObjectHttp& rhs) = delete;
 
@@ -60,7 +57,10 @@ namespace arch
 		virtual IProtocolObject& acquire(IProtocolObject& src) noexcept override;
 		virtual void dispose() noexcept override;
 
-	protected:
+	private:
+		typedef std::vector<byte_t>					buffer_t;
+	
+	private:
 		buffer_t				_cache;
 
 		std::string				_cached_str;
