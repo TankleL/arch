@@ -53,6 +53,9 @@ namespace arch
 		static void _after_write(uv_write_t *req, int status);
 
 	private:
+		static void _close_conn(TCPConnection* conn);
+
+	private:		
 		void _switch_protocol(TCPConnection* conn);
 
 	private:

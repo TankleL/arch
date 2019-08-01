@@ -137,7 +137,7 @@ void TCPServer::_on_connect(uv_stream_t *server, int status)
 		}
 		else
 		{
-			uv_close((uv_handle_t*)client, _on_close);
+			_close_conn(conn);
 		}
 	}
 	else
@@ -148,9 +148,10 @@ void TCPServer::_on_connect(uv_stream_t *server, int status)
 
 void TCPServer::_on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf)
 {
-	if (nread >= 0)
+	TCPConnection* conn = static_cast<TCPConnection*>(client->data);
+
+	if (conn && nread >= 0)
 	{
-		TCPConnection*	conn = static_cast<TCPConnection*>(client->data);
 		TCPServer* svr_inst = conn->get_uvserver();
 
 		assert(conn);
@@ -171,7 +172,7 @@ void TCPServer::_on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf
 
 			default:
 				goon = false;
-				uv_close((uv_handle_t*)client, _on_close);
+				_close_conn(conn);
 			}
 		}
 
@@ -203,16 +204,20 @@ void TCPServer::_on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf
 			case PPR_ERROR:
 			case PPR_CLOSE:
 			default:
-				uv_close((uv_handle_t*)client, _on_close);
+				_close_conn(conn);
 				break;
 			}
 		}
 	}
-	else if (nread < 0)
+	else if (conn && nread < 0)
 	{
 		if (nread != UV_EOF)
 			printf("Read error %s\n", uv_err_name((int)nread));
-		uv_close((uv_handle_t*)client, _on_close);
+		_close_conn(conn);
+	}
+	else
+	{ // conn == nullptr
+		assert(false);
 	}
 
 	_on_free_buf(buf);
@@ -309,18 +314,17 @@ void TCPServer::_process_outnode(const ArchMessage& node)
 			catch (std::exception&)
 			{
 				//TODO: log the error.
-
-				uv_close((uv_handle_t*)conn->get_hlink(), _on_close);
+				_close_conn(conn);
 			}
 		}
 		else
 		{
-			uv_close((uv_handle_t*)conn->get_hlink(), _on_close);
+			_close_conn(conn);
 		}
 	}
 	else if(!obj && conn)
 	{
-		uv_close((uv_handle_t*)conn->get_hlink(), _on_close);
+		_close_conn(conn);
 	}
 }
 
@@ -338,7 +342,7 @@ void TCPServer::_after_write(uv_write_t *req, int status)
 	switch (wr->cct)
 	{
 	case CCT_Close_AfterSend:
-		uv_close(wr->link, _on_close);
+		_close_conn(wr->conn);
 		break;
 
 	case CCT_Switch_AfterSend_ToWebSocket:
@@ -413,5 +417,12 @@ void TCPServer::_switch_protocol(TCPConnection* conn)
 	}
 }
 
-
+void TCPServer::_close_conn(TCPConnection* conn)
+{
+	if (!conn->get_closing())
+	{
+		uv_close((uv_handle_t*)conn->get_hlink(), _on_close);
+		conn->set_closing(true);
+	}
+}
 

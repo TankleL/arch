@@ -23,6 +23,7 @@ TCPConnection::TCPConnection(
 	, _protoobj(nullptr)
 	, _iproto_type(iproto_type)
 	, _oproto_type(oproto_type)
+	, _closing(false)
 {}
 
 TCPConnection::~TCPConnection()
@@ -65,6 +66,11 @@ uint32_t TCPConnection::get_uid() const noexcept
 	return _uid;
 }
 
+bool TCPConnection::get_closing() const noexcept
+{
+	return _closing;
+}
+
 void TCPConnection::set_proto_obj(IProtocolObject* obj) noexcept
 {
 	_protoobj = obj;
@@ -78,6 +84,11 @@ void TCPConnection::set_iproto_type(ProtocolType type) noexcept
 void TCPConnection::set_oproto_type(ProtocolType type) noexcept
 {
 	_oproto_type = type;
+}
+
+void TCPConnection::set_closing(bool closing) noexcept
+{
+	_closing = closing;
 }
 
 /********************************************************************

@@ -27,10 +27,12 @@ namespace arch
 		ProtocolType		get_iproto_type() const noexcept;
 		ProtocolType		get_oproto_type() const noexcept;
 		uint32_t			get_uid() const noexcept;
+		bool				get_closing() const noexcept;
 
 		void set_proto_obj(IProtocolObject* obj) noexcept;
 		void set_iproto_type(ProtocolType type) noexcept;
 		void set_oproto_type(ProtocolType type) noexcept;
+		void set_closing(bool closing) noexcept;
 
 	protected:
 		TCPConnection(
@@ -49,6 +51,7 @@ namespace arch
 		IProtocolObject*	_protoobj;		// protocol cache object
 		ProtocolType		_iproto_type;	// input protocol type
 		ProtocolType		_oproto_type;	// output protocol type
+		bool				_closing;
 	};
 
 	class TCPConnectionManager
