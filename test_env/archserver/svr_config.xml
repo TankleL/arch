@@ -16,7 +16,7 @@
 		<Module>
 			<Name>Module-Demo</Name>
 			<BinName>mdldemo.dll</BinName>
-			<Binding_Protocoal>HTTP</Binding_Protocoal>
+			<Binding_Protocoal>16</Binding_Protocoal>
 		</Module>
 	</ModulePhase>
 </ArchServer_Config>

@@ -94,6 +94,22 @@ bool ProtoProcWebSocket::proc_ostrm(std::string& obuffer, const IProtocolObject&
 {
 	bool retval = true;
 
+#if defined(DEBUG) || defined(_DEBUG)
+	const ProtocolObjectWebSocket& obj = dynamic_cast<const ProtocolObjectWebSocket&>(src);
+	// throw bad_cast if errored.
+#else
+	const ProtocolObjectWebSocket& obj = static_cast<const ProtocolObjectWebSocket&>(src);
+#endif
+
+	if (obj._ioframes.size() == 1)
+	{ // currently, we only support responding with 1 frame.
+		std::uint8_t header[20];
+		unsigned short header_len = obj._ioframes.front().gen_header(header);
+
+		obuffer.append((const char*)header, 20);
+		obuffer.append(obj._ioframes.front().data.begin(), obj._ioframes.front().data.end());
+	}
+
 	return retval;
 }
 
@@ -114,19 +130,19 @@ WSParsingPhase ProtoProcWebSocket::_proc_istrm_byte(Internal_ProtoObjectWebSocke
 	case WSPP_FinRsvsOpcode:
 		{
 			WSMsgFrame empty_frame;
-			obj._frames.push_back(empty_frame);
+			obj._ioframes.push_back(empty_frame);
 		}
 		
-		obj._frames.back().digest_fin_rsv_opcode(ch);
+		obj._ioframes.back().digest_fin_rsv_opcode(ch);
 
-		if ((obj._frames.size() == 1 && obj._frames.back().opcode == WSO_Binary) ||
-			(obj._frames.size() == 1 && obj._frames.back().opcode == WSO_Text) ||
-			(obj._frames.size() > 1 && obj._frames.back().opcode == WSO_Continuation))
+		if ((obj._ioframes.size() == 1 && obj._ioframes.back().opcode == WSO_Binary) ||
+			(obj._ioframes.size() == 1 && obj._ioframes.back().opcode == WSO_Text) ||
+			(obj._ioframes.size() > 1 && obj._ioframes.back().opcode == WSO_Continuation))
 		{
 			obj._parsing_phase = WSPP_MaskPayloadLen;
 			obj._commit_pos = idx;
 		}
-		else if (obj._frames.back().opcode == WSO_Ping)
+		else if (obj._ioframes.back().opcode == WSO_Ping)
 		{
 			obj._parsing_phase = WSPP_Ping;
 			obj._commit_pos = idx;
@@ -139,11 +155,11 @@ WSParsingPhase ProtoProcWebSocket::_proc_istrm_byte(Internal_ProtoObjectWebSocke
 		break;
 		
 	case WSPP_MaskPayloadLen:
-		obj._frames.back().digest_mask_payload(ch);
-		switch (obj._frames.back().payloadlen_type())
+		obj._ioframes.back().digest_mask_payload(ch);
+		switch (obj._ioframes.back().payloadlen_type())
 		{
 		case 0:
-			if (obj._frames.back().mask)
+			if (obj._ioframes.back().mask)
 				obj._parsing_phase = WSPP_MaskingKey;
 			else
 				obj._parsing_phase = WSPP_Payload;
@@ -173,13 +189,13 @@ WSParsingPhase ProtoProcWebSocket::_proc_istrm_byte(Internal_ProtoObjectWebSocke
 		else
 		{
 			obj._cache.push_back(ch);
-			obj._frames.back().target_len = _MAKE_UINT16(
+			obj._ioframes.back().target_len = _MAKE_UINT16(
 				obj._cache[0],
 				obj._cache[1]
 			);
 			obj._cache.clear();
 
-			if (obj._frames.back().mask)
+			if (obj._ioframes.back().mask)
 				obj._parsing_phase = WSPP_MaskingKey;
 			else
 				obj._parsing_phase = WSPP_Payload;
@@ -201,7 +217,7 @@ WSParsingPhase ProtoProcWebSocket::_proc_istrm_byte(Internal_ProtoObjectWebSocke
 		else
 		{
 			obj._cache.push_back(ch);
-			memcpy(obj._frames.back().mask_key,
+			memcpy(obj._ioframes.back().mask_key,
 				obj._cache.data(),
 				4);
 			obj._cache.clear();
@@ -211,20 +227,20 @@ WSParsingPhase ProtoProcWebSocket::_proc_istrm_byte(Internal_ProtoObjectWebSocke
 		break;
 
 	case WSPP_Payload:
-		if (obj._frames.back().data.size() < obj._frames.back().target_len - 1)
+		if (obj._ioframes.back().data.size() < obj._ioframes.back().target_len - 1)
 		{
-			obj._frames.back().data.push_back(ch);
+			obj._ioframes.back().data.push_back(ch);
 			obj._commit_pos = idx;
 		}
 		else
 		{
-			obj._frames.back().data.push_back(ch);
+			obj._ioframes.back().data.push_back(ch);
 			obj._commit_pos = idx;
 
-			if (obj._frames.back().mask)
-				obj._frames.back().decode_data();
+			if (obj._ioframes.back().mask)
+				obj._ioframes.back().decode_data();
 
-			if (obj._frames.back().fin)
+			if (obj._ioframes.back().fin)
 			{
 				obj._parsing_phase = WSPP_Start;
 				retval = WSPP_End;

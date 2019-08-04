@@ -53,7 +53,7 @@ void TCPServiceWorker::_thread()
 			{
 				ArchMessage* onode = new ArchMessage(nullptr, inode->get_hlink(), inode->get_uid());
 
-				Module* mdl = _mm->get_module(inode->get_data_object()->get_protocol_type());
+				IModule* mdl = _mm->get_module(inode->get_data_object()->get_protocol_type());
 				if(mdl)	mdl->process(*onode, *inode);
 
 				delete inode;

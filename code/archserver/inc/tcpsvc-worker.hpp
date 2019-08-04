@@ -3,7 +3,7 @@
 #include "archserver-prereq.hpp"
 #include "archmessagequeue.hpp"
 #include "service-processor.hpp"
-#include "module.hpp"
+#include "modulemgr.hpp"
 
 namespace arch
 {

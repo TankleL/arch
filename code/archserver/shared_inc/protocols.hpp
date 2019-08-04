@@ -175,10 +175,12 @@ namespace arch
 		void					dispose() noexcept override;
 
 	public:
+		
 		typedef std::vector<WSMsgFrame>			framelist_t;
 
 	public:
-		framelist_t				_frames;
+		framelist_t				_ioframes;
+		std::uint32_t			_header_offset;
 	};
 
 
@@ -250,9 +252,11 @@ namespace arch
 	/******************************************************************/
 
 	inline ProtocolObjectWebSocket::ProtocolObjectWebSocket()
+		: _header_offset(4)
 	{}
 
 	inline ProtocolObjectWebSocket::ProtocolObjectWebSocket(ProtocolObjectWebSocket&& rhs) noexcept
+		: _header_offset(rhs._header_offset)
 	{}
 
 	inline ProtocolObjectWebSocket::~ProtocolObjectWebSocket()
@@ -260,12 +264,14 @@ namespace arch
 
 	inline ProtocolObjectWebSocket& ProtocolObjectWebSocket::operator=(ProtocolObjectWebSocket&& rhs) noexcept
 	{
+		_header_offset = rhs._header_offset;
 		return *this;
 	}
 
 	inline IProtocolObject& ProtocolObjectWebSocket::acquire(IProtocolObject& src) noexcept
 	{
 		ProtocolObjectWebSocket& obj = static_cast<ProtocolObjectWebSocket&>(src);
+		_header_offset = obj._header_offset;
 		return *this;
 	}
 
