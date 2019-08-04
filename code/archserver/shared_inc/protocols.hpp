@@ -1,6 +1,8 @@
 #pragma once
 
 #include <map>
+#include <vector>
+#include <cassert>
 #include "acquirable.hpp"
 #include "disposable.hpp"
 
@@ -95,6 +97,64 @@ namespace arch
 	/*                   Protocol WebSocket Object                    */
 	/******************************************************************/
 
+	enum WSOpcode : std::uint8_t
+	{
+		WSO_Continuation = 0,
+		WSO_Text = 1,
+		WSO_Binary = 2,
+		WSO_Reserved3, WSO_Reserved4, WSO_Reserved5, WSO_Reserved6, WSO_Reserved7,
+		WSO_Close = 8,
+		WSO_Ping = 9,
+		WSO_Pong = 10,
+		WSO_ReservedB, WSO_ReservedC, WSO_ReservedD, WSO_WSO_ReservedE, WSO_ReservedF,
+	};
+
+
+	//		   0                   1                   2                   3
+	//		   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	//		  +-+-+-+-+-------+-+-------------+-------------------------------+
+	//		  |F|R|R|R| opcode|M| Payload len |    Extended payload length    |
+	//		  |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
+	//		  |N|V|V|V|       |S|             |   (if payload len==126/127)   |
+	//		  | |1|2|3|       |K|             |                               |
+	//		  +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+	//		  |     Extended payload length continued, if payload len == 127  |
+	//		  + - - - - - - - - - - - - - - - +-------------------------------+
+	//		  |                               |Masking-key, if MASK set to 1  |
+	//		  +-------------------------------+-------------------------------+
+	//		  | Masking-key (continued)       |          Payload Data         |
+	//		  +-------------------------------- - - - - - - - - - - - - - - - +
+	//		  :                     Payload Data continued ...                :
+	//		  + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+	//		  |                     Payload Data continued ...                |
+	//		  +---------------------------------------------------------------+
+	typedef struct WSMsgFrame
+	{
+	public:
+		std::vector<unsigned char>	data;
+		std::uint64_t				target_len;
+		std::uint8_t				mask_key[4];
+		WSOpcode					opcode;
+		bool						fin;
+		bool						mask;
+
+	public:
+		WSMsgFrame();
+
+		void digest_fin_rsv_opcode(std::uint8_t data);
+		void digest_mask_payload(std::uint8_t data);
+		void decode_data();
+		void encode_data();
+		void encode_data(unsigned char* dst_data, unsigned short len);
+		void gen_mask_key();
+		unsigned short gen_header(uint8_t* out) const;
+		std::uint8_t gen_fin_rsv_opcode() const;
+		std::uint8_t gen_mask_payload() const;
+		void gen_ext_payload1(std::uint8_t& low, std::uint8_t& high) const;
+
+		int payloadlen_type() const;
+	} msg_frame_t;
+
 	class ProtocolObjectWebSocket
 		: public IProtocolObject
 	{
@@ -115,6 +175,10 @@ namespace arch
 		void					dispose() noexcept override;
 
 	public:
+		typedef std::vector<WSMsgFrame>			framelist_t;
+
+	public:
+		framelist_t				_frames;
 	};
 
 
@@ -209,6 +273,135 @@ namespace arch
 	{
 		delete this;
 	}
+
+
+	inline WSMsgFrame::WSMsgFrame()
+		: target_len(0)
+		, mask_key{ 0 }
+		, opcode(WSO_Close)
+		, fin(false)
+		, mask(false)
+	{}
+
+	inline void WSMsgFrame::digest_fin_rsv_opcode(std::uint8_t data)
+	{
+		fin = (data >> 7) == 1;
+		opcode = (WSOpcode)(data & 0x0f);
+	}
+
+	inline void WSMsgFrame::digest_mask_payload(std::uint8_t data)
+	{
+		mask = (data >> 7) == 1;
+		target_len = (data & 0x7f);
+	}
+
+	inline std::uint8_t WSMsgFrame::gen_fin_rsv_opcode() const
+	{
+		return (fin << 7) | opcode;
+	}
+
+	inline std::uint8_t WSMsgFrame::gen_mask_payload() const
+	{
+		if (target_len < 0x7e)
+		{
+			return (((int)mask) << 7) | ((std::uint8_t)target_len);
+		}
+		else if (target_len >= 0x7e)
+		{
+			return (((int)mask) << 7) | 0x7e;
+		}
+		else
+		{
+			assert(false);
+			return (((int)mask) << 7);
+		}
+	}
+
+	inline void WSMsgFrame::gen_ext_payload1(std::uint8_t & low, std::uint8_t & high) const
+	{
+		low = ((std::uint16_t)target_len) & 0xff00;
+		high = ((std::uint16_t)target_len) & 0x00ff;
+	}
+
+	inline unsigned short WSMsgFrame::gen_header(uint8_t * out) const
+	{
+		int idx = 0;
+
+		out[idx++] = gen_fin_rsv_opcode();
+		out[idx++] = gen_mask_payload();
+
+		if (target_len >= 0x7e && target_len <= 0xffff)
+		{
+			gen_ext_payload1(out[idx++], out[idx++]);
+		}
+		else if (target_len > 0xffff)
+		{
+			assert(false);
+			// Sorry, we DO NOT support the payload whose length is longer than 65536.
+		}
+
+		if (mask)
+		{
+			memcpy(out + idx, mask_key, 4);
+			idx += 4;
+		}
+
+		return idx;
+	}
+
+	inline int WSMsgFrame::payloadlen_type() const
+	{
+		if (target_len < 0x7e)
+		{
+			return 0;	// normal type, no need to read ext payload len.
+		}
+		else if (target_len == 0x7e)
+		{
+			return 16;	// read next 16bits and interpret as the ext payload len.
+		}
+		else
+		{
+			return 64; // read next 64bits and interpret as the ext payload len.
+		}
+	}
+
+	inline void WSMsgFrame::decode_data()
+	{
+		for (size_t i = 0; i < data.size(); ++i)
+		{
+			data[i] = data[i] ^ mask_key[i % 4];
+		}
+	}
+
+	inline void WSMsgFrame::encode_data()
+	{
+		for (size_t i = 0; i < data.size(); ++i)
+		{
+			data[i] = data[i] ^ mask_key[i % 4];
+		}
+	}
+
+	inline void WSMsgFrame::encode_data(unsigned char* dst_data, unsigned short len)
+	{
+		for (int i = 0; i < len; ++i)
+		{
+			dst_data[i] = dst_data[i] ^ mask_key[i % 4];
+		}
+	}
+
+	inline void WSMsgFrame::gen_mask_key()
+	{
+		static std::uint8_t mk0 = 0x00;
+		static std::uint8_t mk1 = 0x3f;
+		static std::uint8_t mk2 = 0x7f;
+		static std::uint8_t mk3 = 0xff;
+
+		mask_key[0] = ++mk0;
+		mask_key[1] = ++mk1;
+		mask_key[2] = ++mk2;
+		mask_key[3] = ++mk3;
+	}
+
 }
 
 
