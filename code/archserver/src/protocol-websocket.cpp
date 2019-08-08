@@ -11,60 +11,60 @@ using namespace arch;
 		 (u_1)			\
 		)
 
-ProtoProcRet ProtoProcWebSocket::proc_istrm(IProtocolObject& dest, const uv_buf_t* uvbuffer, ssize_t uvreadlen)
+ProtoProcRet ProtoProcWebSocket::proc_istrm(IProtocolObject& dest, cbyte_ptr readbuf, ssize_t toreadlen, ssize_t& procbytes)
 {
-	ProtoProcRet retval = PPR_AGAIN;
+	procbytes = 0;
 
 	Internal_ProtoObjectWebSocket& obj = static_cast<Internal_ProtoObjectWebSocket&>(dest);
 	obj._commit_pos = 0;
 
-	const byte_ptr read_buf = (byte_ptr)(uvbuffer->base);
-
 	const index_t cache_size = (index_t)obj._cache.size();
 	if (cache_size > 0)
 	{
-		byte_ptr p = obj._cache.data();
-		for (index_t i = 0; i < cache_size && retval >= 0; ++i, ++p)
+		cbyte_ptr p = obj._cache.data();
+		for (index_t i = 0; i < cache_size; ++i, ++p)
 		{
-			WSParsingPhase status = _proc_istrm_byte(obj, read_buf, p, i);
-			if (WSPP_End != status)
+			WSParsingPhase status = _proc_istrm_byte(obj, readbuf, p, i);
+			
+			if (WSPP_End == status && WSPP_Error != status)
 			{
-				retval = WSPP_Error != status ? PPR_AGAIN : PPR_ERROR;
+				return PPR_PULSE;
 			}
-			else
+			else if(WSPP_Error == status)
 			{
-				retval = PPR_PULSE;
+				return PPR_ERROR;
 			}
 		}
 	}
 
-	const index_t read_size = (index_t)uvreadlen;
-	if (read_size > 0 && retval >= 0)
+	const index_t read_size = (index_t)toreadlen;
+	if (read_size > 0)
 	{
-		byte_ptr p = (byte_ptr)(uvbuffer->base);
-		for (index_t i = 0; i < read_size && retval >= 0; ++i, ++p)
+		const byte_t* p = readbuf;
+		for (index_t i = 0; i < read_size; ++i, ++p)
 		{
-			WSParsingPhase status = _proc_istrm_byte(obj, read_buf, p, i + cache_size);
-			if (WSPP_End != status)
+			++procbytes;
+			WSParsingPhase status = _proc_istrm_byte(obj, readbuf, p, i + cache_size);
+			if (WSPP_End == status && WSPP_Error != status)
 			{
-				retval = WSPP_Error != status ? PPR_AGAIN : PPR_ERROR;
+				return PPR_PULSE;
 			}
-			else
+			else if (WSPP_Error == status)
 			{
-				retval = PPR_PULSE;
+				return PPR_ERROR;
 			}
 		}
 	}
 
 	const index_t total_size = cache_size + read_size;
-	if (retval >= 0 && total_size > 0 && obj._commit_pos < total_size - 1)
+	if (total_size > 0 && obj._commit_pos < total_size - 1)
 	{
 		Internal_ProtoObjectWebSocket::buffer_t& cache = obj._cache;
 		index_t idx = obj._commit_pos;
 		if (idx < cache_size)
 		{
 			const index_t len = cache_size - idx;
-			for (index_t i = 0; i < len; ++i)
+			for (index_t i = 0; i < len; ++i, ++procbytes)
 			{
 				cache[i] = cache[idx + i];
 			}
@@ -83,11 +83,14 @@ ProtoProcRet ProtoProcWebSocket::proc_istrm(IProtocolObject& dest, const uv_buf_
 
 		if (idx < total_size)
 		{
-			cache.insert(cache.end(), read_buf + idx - cache_size, read_buf + total_size - cache_size);
+			for (const byte_t* p = readbuf + idx; idx < total_size; ++idx, ++procbytes)
+			{
+				cache.push_back(*p);
+			}
 		}
 	}
 
-	return retval;
+	return PPR_AGAIN;
 }
 
 bool ProtoProcWebSocket::proc_ostrm(std::string& obuffer, const IProtocolObject& src)
@@ -118,7 +121,7 @@ bool ProtoProcWebSocket::proc_check_switch(ProtocolType& dest_proto, const IProt
 	return false;
 }
 
-WSParsingPhase ProtoProcWebSocket::_proc_istrm_byte(Internal_ProtoObjectWebSocket& obj, byte_ptr read_buf, byte_ptr p, index_t idx)
+WSParsingPhase ProtoProcWebSocket::_proc_istrm_byte(Internal_ProtoObjectWebSocket& obj, cbyte_ptr read_buf, cbyte_ptr p, index_t idx)
 {
 	WSParsingPhase retval = WSPP_Again;
 

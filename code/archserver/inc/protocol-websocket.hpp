@@ -29,12 +29,12 @@ namespace arch
 	class ProtoProcWebSocket : public IProtocolProc
 	{
 	public:
-		virtual ProtoProcRet proc_istrm(IProtocolObject& dest, const uv_buf_t* uvbuffer, ssize_t uvreadlen) override;
+		virtual ProtoProcRet proc_istrm(IProtocolObject& dest, cbyte_ptr readbuf, ssize_t toreadlen, ssize_t& procbytes) override;
 		virtual bool proc_ostrm(std::string& obuffer, const IProtocolObject& src) override;
 		virtual bool proc_check_switch(ProtocolType& dest_proto, const IProtocolObject& obj) override;
 
 	protected:
-		static WSParsingPhase _proc_istrm_byte(Internal_ProtoObjectWebSocket& obj, byte_ptr read_buf, byte_ptr p, index_t idx);
+		static WSParsingPhase _proc_istrm_byte(Internal_ProtoObjectWebSocket& obj, cbyte_ptr read_buf, cbyte_ptr p, index_t idx);
 		
 	};
 		

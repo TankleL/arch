@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <map>
 #include <functional>
+#include <algorithm>
+#include <iterator>
 #include <thread>
 #include <mutex>
 #include <cstdint>
@@ -40,8 +42,9 @@
 namespace arch
 {
 
-	typedef unsigned char	byte_t, * byte_ptr;
-	typedef unsigned int	index_t, * index_ptr;
+	typedef unsigned char		byte_t, * byte_ptr;
+	typedef const unsigned char	cbyte_t, * cbyte_ptr;
+	typedef unsigned int		index_t, * index_ptr;
 
 	template<typename _T>
 	inline void safe_delete(_T*& target)
