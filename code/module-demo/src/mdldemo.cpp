@@ -47,6 +47,7 @@ extern "C" __DECLSPEC_DLLEXPORT void arch_service_processor(arch::ArchMessage& o
 	rsp_frame.fin = true;
 	rsp_frame.opcode = arch::WSO_Binary;
 	rsp_frame.target_len = rsp_frame.data.size();
+	dobj->_ioframes.push_back(std::move(rsp_frame));
 
 	onode.set_data_object(dobj);
 

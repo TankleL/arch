@@ -109,7 +109,7 @@ bool ProtoProcWebSocket::proc_ostrm(std::string& obuffer, const IProtocolObject&
 		std::uint8_t header[20];
 		unsigned short header_len = obj._ioframes.front().gen_header(header);
 
-		obuffer.append((const char*)header, 20);
+		obuffer.append((const char*)header, header_len);
 		obuffer.append(obj._ioframes.front().data.begin(), obj._ioframes.front().data.end());
 	}
 
