@@ -3,6 +3,9 @@
 
 namespace arch
 {
+	/*
+	* This is a temporary design. This must be replaced or redesign in future.
+	*/
 	class IDisposable
 	{
 	public:

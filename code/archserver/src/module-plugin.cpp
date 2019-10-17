@@ -1,25 +1,24 @@
-#include "module.hpp"
-#include "config.hpp"
+#include "module-plugin.hpp"
 
 using namespace std;
 using namespace arch;
 
-Module::Module(
+PluginModule::PluginModule(
 	const std::string& pool_path,
 	const std::string& name,
 	const std::string& binname,
-	ProtocolType protocol)
+	int protocol_number)
 	: _name(name)
 	, _binname(binname)
 	, _fullpath(pool_path + "/" + name)
-	, _protocol(protocol)
+	, _proto_num(protocol_number)
 	, _hmodule(nullptr)
 	, _i_module_init(nullptr)
 	, _i_module_uninit(nullptr)
 	, _i_module_service_proc(nullptr)
 {}
 
-bool Module::init()
+bool PluginModule::init()
 {
 	bool retval = true;
 
@@ -57,76 +56,20 @@ bool Module::init()
 	return retval;
 }
 
-void Module::uninit()
+void PluginModule::uninit()
 {
 	_i_module_uninit();
 	osys::dll_unload(_hmodule);
 }
 
-void Module::process(ArchMessage& onode, const ArchMessage& inode)
+void PluginModule::process(ArchMessage& onode, const ArchMessage& inode)
 {
 	assert(_i_module_service_proc);
 
 	_i_module_service_proc(onode, inode);
 }
 
-ModuleManager::ModuleManager()
-	: _modules{ nullptr }
-{}
-
-ModuleManager::~ModuleManager()
+void PluginModule::dispose() noexcept
 {
-	unload_all_modules();
-}
-
-Module* ModuleManager::get_module(ProtocolType proto_type) const
-{
-	assert(proto_type >= 0 && proto_type < PT_ProtoTypesNum);
-	return _modules[proto_type];
-}
-
-ProtocolType ModuleManager::_get_protocol_type(const std::string& proto_type)
-{
-	if (proto_type == "HTTP")
-	{
-		return PT_Http;
-	}
-	else
-	{
-		return PT_Unknown;
-	}
-}
-
-void ModuleManager::load_all_modules()
-{
-	for (const auto& m : config::module_phase.modules)
-	{
-		ProtocolType pt = _get_protocol_type(m.second.proto_type);
-		if (pt != PT_Unknown)
-		{
-			Module* md = new Module(
-				config::module_phase.root_path,
-				m.second.name,
-				m.second.bin_name,
-				pt);
-
-			if (md->init())
-			{
-				_modules[pt] = md;
-			}
-		}
-	}
-}
-
-void ModuleManager::unload_all_modules()
-{
-	for (auto& m : _modules)
-	{
-		if (m)
-		{
-			m->uninit();
-			delete m;
-			m = nullptr;
-		}
-	}
+	delete this;
 }

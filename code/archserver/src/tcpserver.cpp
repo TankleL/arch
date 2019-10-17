@@ -158,54 +158,66 @@ void TCPServer::_on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf
 		assert(conn->get_iproto_type() < PT_ProtoTypesNum);
 
 		bool goon = true;
-		if (nullptr == conn->get_proto_obj())
+		ssize_t	offset = 0;
+		while (goon)
 		{
-			switch (conn->get_iproto_type())
+			if (nullptr == conn->get_proto_obj())
 			{
-			case PT_Http:
-				conn->set_proto_obj(new Internal_ProtoObjectHttp());
-				break;
-
-			case PT_WebSocket:
-				conn->set_proto_obj(new Internal_ProtoObjectWebSocket());
-				break;
-
-			default:
-				goon = false;
-				_close_conn(conn);
-			}
-		}
-
-		IProtocolProc* iproc = svr_inst->_proto_procs[conn->get_iproto_type()];
-
-		if (goon)
-		{
-			ProtoProcRet proc_ret = iproc->proc_istrm(*conn->get_proto_obj(), buf, nread);
-			switch (proc_ret)
-			{
-			case PPR_AGAIN:
-				break;
-
-			case PPR_PULSE:
-			{
-				if (!iproc->proc_check_switch(svr_inst->_psdestpt, *conn->get_proto_obj()))
+				switch (conn->get_iproto_type())
 				{
-					ArchMessage* inode = new ArchMessage(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid());
-					conn->set_proto_obj(nullptr);
-					conn->get_uvserver()->_in_queue->push(inode);
-				}
-				else
-				{
-					svr_inst->_switch_protocol(conn);
+				case PT_Http:
+					conn->set_proto_obj(new Internal_ProtoObjectHttp());
+					break;
+
+				case PT_WebSocket:
+					conn->set_proto_obj(new Internal_ProtoObjectWebSocket());
+					break;
+
+				default:
+					goon = false;
+					_close_conn(conn);
 				}
 			}
+
+			IProtocolProc* iproc = svr_inst->_proto_procs[conn->get_iproto_type()];
+
+			if (goon)
+			{
+				ssize_t	procbytes = 0;
+				ProtoProcRet proc_ret = iproc->proc_istrm(
+					*conn->get_proto_obj(),
+					(cbyte_ptr)(buf->base + offset),
+					nread,
+					procbytes);
+				offset += procbytes;
+				switch (proc_ret)
+				{
+				case PPR_AGAIN:
+					break;
+
+				case PPR_PULSE:
+				{
+					if (!iproc->proc_check_switch(svr_inst->_psdestpt, *conn->get_proto_obj()))
+					{
+						ArchMessage* inode = new ArchMessage(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid());
+						conn->set_proto_obj(nullptr);
+						conn->get_uvserver()->_in_queue->push(inode);
+					}
+					else
+					{
+						svr_inst->_switch_protocol(conn);
+					}
+				}
 				break;
 
-			case PPR_ERROR:
-			case PPR_CLOSE:
-			default:
-				_close_conn(conn);
-				break;
+				case PPR_ERROR:
+				case PPR_CLOSE:
+				default:
+					_close_conn(conn);
+					break;
+				}
+
+				goon = offset < nread;
 			}
 		}
 	}

@@ -19,7 +19,7 @@ namespace arch
 	class IProtocolProc
 	{
 	public:
-		virtual ProtoProcRet proc_istrm(IProtocolObject& dest, const uv_buf_t* uvbuffer, ssize_t uvreadlen) = 0;
+		virtual ProtoProcRet proc_istrm(IProtocolObject& dest, cbyte_ptr readbuf, ssize_t toreadlen, ssize_t& procbytes) = 0;
 		virtual bool proc_ostrm(std::string& obuffer, const IProtocolObject& src) = 0;
 		virtual bool proc_check_switch(ProtocolType& dest_proto, const IProtocolObject& obj) = 0;
 	};
