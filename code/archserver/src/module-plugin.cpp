@@ -13,6 +13,7 @@ PluginModule::PluginModule(
 	, _fullpath(pool_path + "/" + name)
 	, _proto_num(protocol_number)
 	, _hmodule(nullptr)
+	, _i_module_preload(nullptr)
 	, _i_module_init(nullptr)
 	, _i_module_uninit(nullptr)
 	, _i_module_service_proc(nullptr)
@@ -25,6 +26,10 @@ bool PluginModule::init()
 	_hmodule = osys::dll_load(_fullpath + "/" + _binname);
 	if (_hmodule != osys::dll_invalid_handler)
 	{
+		_i_module_preload = static_cast<module_preload_fp_t>(
+			osys::dll_symbol(_hmodule, "arch_module_preload"));
+		retval = retval && _i_module_preload != nullptr;
+
 		_i_module_init = static_cast<module_init_fp_t>(
 			osys::dll_symbol(_hmodule, "arch_module_init"));
 		retval = retval && _i_module_init != nullptr;
@@ -41,6 +46,8 @@ bool PluginModule::init()
 		{
 			osys::dll_unload(_hmodule);
 		}
+
+		_i_module_preload();
 
 		retval = retval && (0 == _i_module_init());
 		if (!retval)

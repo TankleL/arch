@@ -13,3 +13,9 @@ extern "C" __DECLSPEC_DLLEXPORT void	arch_module_preload(void);
 extern "C" __DECLSPEC_DLLEXPORT int		arch_module_init(void);
 extern "C" __DECLSPEC_DLLEXPORT void	arch_module_uninit(void);
 extern "C" __DECLSPEC_DLLEXPORT void	arch_service_processor(arch::ArchMessage& onode, const arch::ArchMessage& inode);
+
+#define DEF_ARCMODULE(IMPL_CLASS)\
+	extern "C" __DECLSPEC_DLLEXPORT void	arch_module_preload(void){ \
+		assert(libam::_global_amodule_instance == nullptr); \
+		libam::_global_amodule_instance = new IMPL_CLASS(); \
+	}
