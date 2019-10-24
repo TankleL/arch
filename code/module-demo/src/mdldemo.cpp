@@ -1,26 +1,27 @@
 #include <iostream>
-#include "module-interfaces.hpp"
-#include "protocols.hpp"
+#include "mdldemo.hpp"
 
 using namespace std;
 
-extern "C" __DECLSPEC_DLLEXPORT int arch_module_init(void)
+DEF_ARCMODULE(ModuleDemo);
+
+int ModuleDemo::Init()
 {
 	cout << "module mdldemo has been loaded" << endl;
 	return 0;
 }
 
-extern "C" __DECLSPEC_DLLEXPORT void arch_module_uninit(void)
+void ModuleDemo::Uninit()
 {
 	cout << "module mdldemo has been unloaded" << endl;
 }
 
-extern "C" __DECLSPEC_DLLEXPORT void arch_service_processor(arch::ArchMessage& onode, const arch::ArchMessage& inode)
+void ModuleDemo::service_processor(arch::ArchMessage& onode, const arch::ArchMessage& inode)
 {
 	cout << "mdldemo: this is an echo protocol module" << endl;
 	cout << "mdldemo: processing a request ..." << endl;
 
-	//onode.set_conn_ctrl_type(arch::CCT_Close_AfterSend);
+	onode.set_conn_ctrl_type(arch::CCT_Close_AfterSend);
 
 	const arch::ProtocolObjectWebSocket* sobj = static_cast<const arch::ProtocolObjectWebSocket*>(inode.get_data_object());
 	arch::ProtocolObjectWebSocket* dobj = new arch::ProtocolObjectWebSocket();

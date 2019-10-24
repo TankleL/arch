@@ -46,13 +46,15 @@ bool PluginModule::init()
 		{
 			osys::dll_unload(_hmodule);
 		}
-
-		_i_module_preload();
-
-		retval = retval && (0 == _i_module_init());
-		if (!retval)
+		else
 		{
-			osys::dll_unload(_hmodule);
+			_i_module_preload();
+
+			retval = retval && (0 == _i_module_init());
+			if (!retval)
+			{
+				osys::dll_unload(_hmodule);
+			}
 		}
 	}
 	else

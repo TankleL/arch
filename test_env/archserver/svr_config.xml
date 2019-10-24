@@ -18,5 +18,10 @@
 			<BinName>mdldemo.dll</BinName>
 			<Binding_Protocoal>16</Binding_Protocoal>
 		</Module>
+		<Module>
+			<Name>Module-HTTPD</Name>
+			<BinName>mdlhttpd.dll</BinName>
+			<Binding_Protocoal>17</Binding_Protocoal>
+		</Module>
 	</ModulePhase>
 </ArchServer_Config>

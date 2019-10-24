@@ -2,15 +2,15 @@
 cmake_minimum_required (VERSION 3.0)
 message("enter-level > " module-demo)
 
+
 FILE(GLOB_RECURSE MODULE_DEMO_INC_FILES "inc/*.hpp")
 aux_source_directory (src MODULE_DEMO_SRC_FILES)
 
-message("path of archsvr-shared-inc: " ${ARCHSVR_SHARED_INC})
-
 include_directories(inc)
-include_directories(${ARCHSVR_SHARED_INC})
+include_directories(${LIBAM_INC})
 
 add_library(mdldemo SHARED ${MODULE_DEMO_INC_FILES} ${MODULE_DEMO_SRC_FILES})
+target_link_libraries(mdldemo libam_a)
 
 if(WIN32)
 	set(MODULE_DEMO_POST_BUILD_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/buildtools/post-build-cmd-win32.bat   ${PROJECT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${TEST_ENV_ROOT_PATH})
