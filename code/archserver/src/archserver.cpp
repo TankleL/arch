@@ -10,7 +10,11 @@ using namespace arch;
 
 int main(int argc, char** argv)
 {
+#if defined(_DEBUG) || defined(DEBUG)
+	config::load_config(TEST_PATH_CONFIG_FILE);
+#else
 	config::load_config(argv[1]);
+#endif
 
 	ModuleManager	module_mgr;
 	module_mgr.load_all_modules();

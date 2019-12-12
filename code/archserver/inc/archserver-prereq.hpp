@@ -22,6 +22,7 @@
 #include <exception>
 #include <list>
 #include <chrono>
+#include <regex>
 
 #ifdef WIN32
 #	ifdef API_DEV_MOD

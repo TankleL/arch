@@ -6,7 +6,6 @@ namespace arch
 {
 	namespace config
 	{
-
 		typedef struct server_phase_st
 		{
 			std::string		ipaddr;

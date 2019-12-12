@@ -159,6 +159,12 @@ namespace arch
 				if (strcmp(name, "RootPath") == 0)
 				{
 					module_phase.root_path = element.GetText();
+#if defined(_DEBUG) || defined(DEBUG)
+					module_phase.root_path = std::regex_replace(
+						module_phase.root_path,
+						std::regex("\\$\\{TEST_ROOT_PATH\\}"),
+						TEST_PATH_RES_MODULES_ROOT);
+#endif
 				}
 				else if (strcmp(name, "Module") == 0)
 				{

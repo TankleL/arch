@@ -12,7 +12,7 @@
 	</ServerPhase>
 		
 	<ModulePhase>
-		<RootPath>G:/repos/arch/test_env/modules</RootPath>
+		<RootPath>${TEST_ROOT_PATH}</RootPath>
 		<Module>
 			<Name>Module-Demo</Name>
 			<BinName>mdldemo.dll</BinName>
