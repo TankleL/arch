@@ -31,7 +31,8 @@ void TCPServer::WriteRequest::dispose()
 
 TCPServer::TCPServer(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue)
 	: _connmgr(this)
-	, _uv_loop(nullptr)
+	, _uv_loop({ 0 })
+	, _uv_async_send({ 0 })
 	, _in_queue(in_queue)
 	, _out_queue(out_queue)
 	, _workermgr(nullptr)
@@ -42,13 +43,12 @@ TCPServer::TCPServer(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue)
 	memset(&_uv_server, 0, sizeof(_uv_server));
 	
 	// set up uv loop
-	_uv_loop = new uv_loop_t;
-	uv_loop_init(_uv_loop);
+	uv_loop_init(&_uv_loop);
 
 	// set up async calls
-	_uv_async_send = new uv_async_t;
-	_uv_async_send->data = this;
-	uv_async_init(_uv_loop, _uv_async_send, _on_async_send);
+	memset(&_uv_async_send, 0, sizeof(_uv_async_send));
+	_uv_async_send.data = this;
+	uv_async_init(&_uv_loop, &_uv_async_send, _on_async_send);
 
 	// set up protocol procs
 	for (int proto_type = 0; proto_type < PT_ProtoTypesNum; ++proto_type)
@@ -86,7 +86,7 @@ TCPServer::~TCPServer()
 		if (_proto_procs[proto_type]) delete _proto_procs[proto_type];
 	}
 
-	safe_delete(_uv_loop);
+	uv_loop_close(&_uv_loop);
 }
 
 void TCPServer::run(
@@ -97,7 +97,7 @@ void TCPServer::run(
 	int core_number
 )
 {
-	uv_tcp_init(_uv_loop, &_uv_server);
+	uv_tcp_init(&_uv_loop, &_uv_server);
 	sockaddr_in	addr;
 	uv_ip4_addr(ipaddr.c_str(), port, &addr);
 	uv_tcp_bind(&_uv_server, (const sockaddr*)&addr, 0);
@@ -108,7 +108,7 @@ void TCPServer::run(
 	_uv_server.data = this;
 	int res = uv_listen((uv_stream_t*)& _uv_server, backlog, *_on_connect);
 
-	uv_run(_uv_loop, UV_RUN_DEFAULT);
+	uv_run(&_uv_loop, UV_RUN_DEFAULT);
 }
 
 void TCPServer::_on_connect(uv_stream_t *server, int status)
@@ -118,7 +118,7 @@ void TCPServer::_on_connect(uv_stream_t *server, int status)
 	if (status >= 0)
 	{
 		uv_tcp_t *client = new uv_tcp_t;
-		uv_tcp_init(svr_inst->_uv_loop, client);
+		uv_tcp_init(&(svr_inst->_uv_loop), client);
 
 		/*svr_inst->_proto_procs[PT_Http],*/
 
@@ -266,7 +266,7 @@ void TCPServer::_outing_listen_thread()
 	{
 		if (_out_queue->size() > 0)
 		{
-			uv_async_send(_uv_async_send);
+			uv_async_send(&_uv_async_send);
 		}
 		else
 		{

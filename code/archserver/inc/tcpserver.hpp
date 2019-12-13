@@ -66,8 +66,8 @@ namespace arch
 	private:
 		TCPConnectionManager		_connmgr;
 		uv_tcp_t					_uv_server;
-		uv_loop_t*					_uv_loop;
-		uv_async_t*					_uv_async_send;
+		uv_loop_t					_uv_loop;
+		uv_async_t					_uv_async_send;
 		ArchMessageQueue*			_in_queue;
 		ArchMessageQueue*			_out_queue;
 		TCPServiceWorkerManager*	_workermgr;
