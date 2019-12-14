@@ -457,6 +457,9 @@ IProtocolObject& Internal_ProtoObjectHttp::acquire(IProtocolObject& src) noexcep
 
 	ProtocolObjectHttp::acquire(src);
 	_cache = std::move(obj._cache);
+	_cached_str = std::move(obj._cached_str);
+	_commit_pos = obj._commit_pos;
+	_parsing_phase = obj._parsing_phase;
 	return *this;
 }
 
