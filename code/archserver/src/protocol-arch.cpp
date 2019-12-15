@@ -59,7 +59,21 @@ _GOTO_LAB_PROC_HEADER_EXT_V0_1:	// Ugly but simple way.
 	case APP_Parsing_Content:
 _GOTO_LAB_PROC_CONTENT:
 		{
-			
+			uint32_t needread = obj._content_length - (uint32_t)obj.data.size();
+			if (needread > 0)
+			{
+				needread = toreadlen < needread ? (uint32_t)toreadlen : needread;
+				obj.data.insert(obj.data.end(), readbuf, readbuf + needread);
+
+				if (obj.data.size() == obj._content_length)
+				{
+					return PPR_PULSE;
+				}
+			}
+			else
+			{
+				PPR_ERROR;
+			}
 		}
 		break;
 	}

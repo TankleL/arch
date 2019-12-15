@@ -466,6 +466,7 @@ namespace arch
 		data = std::move(rhs.data);
 
 		rhs.version = APV_Unknown;
+		return *this;
 	}
 
 	inline IProtocolObject& ProtocolObjectArch::acquire(IProtocolObject& src) noexcept
@@ -475,6 +476,8 @@ namespace arch
 		data = std::move(srcobj.data);
 
 		srcobj.version = APV_Unknown;
+
+		return *this;
 	}
 
 	inline void ProtocolObjectArch::dispose() noexcept

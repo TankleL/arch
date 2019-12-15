@@ -199,9 +199,9 @@ void TCPServer::_on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf
 				{
 					if (!iproc->proc_check_switch(svr_inst->_psdestpt, *conn->get_proto_obj()))
 					{
-						ArchMessage* inode = new ArchMessage(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid());
+						ArchMessage inode(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid());
 						conn->set_proto_obj(nullptr);
-						conn->get_uvserver()->_in_queue->push(inode);
+						conn->get_uvserver()->_in_queue->push(std::move(inode));
 					}
 					else
 					{
@@ -278,11 +278,10 @@ void TCPServer::_outing_listen_thread()
 void TCPServer::_on_async_send(uv_async_t* handle)
 {
 	TCPServer* svr_inst = static_cast<TCPServer*>(handle->data);
-	ArchMessage* onode = nullptr;
-	while (svr_inst->_out_queue->pop(&onode))
+	ArchMessage onode;
+	while (svr_inst->_out_queue->pop(onode))
 	{
-		svr_inst->_process_outnode(*onode);
-		delete onode;
+		svr_inst->_process_outnode(onode);
 	}
 }
 
@@ -402,8 +401,8 @@ void TCPServer::_switch_protocol(TCPConnection* conn)
 				oobj->headers.insert(std::make_pair("Sec-WebSocket-Protocol", ws_proto->second));
 			}
 
-			ArchMessage* onode = new ArchMessage(oobj, conn->get_hlink(), conn->get_uid());
-			conn->get_uvserver()->_out_queue->push(onode);
+			ArchMessage onode(oobj, conn->get_hlink(), conn->get_uid());
+			conn->get_uvserver()->_out_queue->push(std::move(onode));
 
 			obj->dispose();
 			conn->set_proto_obj(nullptr);
@@ -412,9 +411,9 @@ void TCPServer::_switch_protocol(TCPConnection* conn)
 			break;
 
 		default:
-			ArchMessage* onode = new ArchMessage(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid(), CCT_Close_Immediate);
+			ArchMessage onode(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid(), CCT_Close_Immediate);
 			conn->set_proto_obj(nullptr);
-			conn->get_uvserver()->_out_queue->push(onode);
+			conn->get_uvserver()->_out_queue->push(std::move(onode));
 		}
 	}
 		break;
@@ -422,9 +421,9 @@ void TCPServer::_switch_protocol(TCPConnection* conn)
 	default:
 		// unknown protocol, close connection
 	{
-		ArchMessage* onode = new ArchMessage(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid(), CCT_Close_Immediate);
+		ArchMessage onode(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid(), CCT_Close_Immediate);
 		conn->set_proto_obj(nullptr);
-		conn->get_uvserver()->_out_queue->push(onode);
+		conn->get_uvserver()->_out_queue->push(std::move(onode));
 	}
 	}
 }

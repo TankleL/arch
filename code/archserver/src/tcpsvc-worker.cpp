@@ -48,16 +48,15 @@ void TCPServiceWorker::_thread()
 	{
 		if (_in_queue->size() > 0)
 		{
-			ArchMessage*	inode = nullptr;
-			if (_in_queue->pop(&inode))
+			ArchMessage	inode;
+			if (_in_queue->pop(inode))
 			{
-				ArchMessage* onode = new ArchMessage(nullptr, inode->get_hlink(), inode->get_uid());
+				ArchMessage onode(nullptr, inode.get_hlink(), inode.get_uid());
 
-				IModule* mdl = _mm->get_module(inode->get_data_object()->get_protocol_type());
-				if(mdl)	mdl->process(*onode, *inode);
+				IModule* mdl = _mm->get_module(inode.get_data_object()->get_protocol_type());
+				if(mdl)	mdl->process(onode, inode);
 
-				delete inode;
-				_out_queue->push(onode);
+				_out_queue->push(std::move(onode));
 			}
 			else
 			{
