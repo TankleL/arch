@@ -223,7 +223,7 @@ void TCPServer::_on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf
 	}
 	else if (conn && nread < 0)
 	{
-		if (nread != UV_EOF)
+		if (nread != UV_EOF && nread != UV_ECONNRESET)
 			printf("Read error %s\n", uv_err_name((int)nread));
 		_close_conn(conn);
 	}
