@@ -67,6 +67,7 @@ _GOTO_LAB_PROC_CONTENT:
 
 				if (obj.data.size() == obj._content_length)
 				{
+
 					return PPR_PULSE;
 				}
 			}
@@ -84,6 +85,8 @@ _GOTO_LAB_PROC_CONTENT:
 
 bool ProtoProcArch::proc_ostrm(std::string& obuffer, const IProtocolObject& src)
 {
+	const Internal_ProtoObjectArch& obj = static_cast<const Internal_ProtoObjectArch&>(src);
+	
 	return true;
 }
 
