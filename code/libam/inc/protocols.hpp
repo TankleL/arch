@@ -18,6 +18,7 @@ namespace arch
 	{
 		PT_Http = 0,
 		PT_WebSocket = 1,
+		PT_Arch,
 
 		// < ----------- insert new types here.
 
@@ -75,8 +76,8 @@ namespace arch
 		ProtocolObjectHttp& operator=(ProtocolObjectHttp&& rhs) noexcept;
 
 	public:
-		virtual ProtocolType	get_protocol_type() const noexcept override	{ return PT_Http; }
-		IProtocolObject&		acquire(IProtocolObject& src) noexcept override;
+		virtual ProtocolType	get_protocol_type() const noexcept override { return PT_Http; }
+		IProtocolObject& acquire(IProtocolObject& src) noexcept override;
 		void					dispose() noexcept override;
 
 	public:
@@ -172,11 +173,10 @@ namespace arch
 
 	public:
 		virtual ProtocolType	get_protocol_type() const noexcept override { return PT_WebSocket; }
-		IProtocolObject&		acquire(IProtocolObject& src) noexcept override;
+		IProtocolObject& acquire(IProtocolObject& src) noexcept override;
 		void					dispose() noexcept override;
 
 	public:
-		
 		typedef std::vector<WSMsgFrame>			framelist_t;
 
 	public:
@@ -184,6 +184,40 @@ namespace arch
 		std::uint32_t			_header_offset;
 	};
 
+
+	/******************************************************************/
+	/*                   ------ Declaration ------                    */
+	/*                      Protocol Arch Object                      */
+	/******************************************************************/
+	enum ArchProtocolVersion : int
+	{
+		APV_Unknown,
+		APV_0_1		// arch protocol 0.1
+	};
+
+	class ProtocolObjectArch
+		: public IProtocolObject
+	{
+	public:
+		ProtocolObjectArch(const ProtocolObjectArch& rhs) = delete;
+		ProtocolObjectArch& operator=(const ProtocolObjectArch& rhs) = delete;
+
+	public:
+		ProtocolObjectArch();
+		ProtocolObjectArch(ProtocolObjectArch&& rhs) noexcept;
+		virtual ~ProtocolObjectArch();
+
+		ProtocolObjectArch& operator=(ProtocolObjectArch&& rhs) noexcept;
+
+	public:
+		virtual ProtocolType	get_protocol_type() const noexcept override { return PT_Arch; }
+		IProtocolObject& acquire(IProtocolObject& src) noexcept override;
+		void					dispose() noexcept override;
+
+	public:
+		std::vector<uint8_t>	data;
+		uint32_t				version;
+	};
 
 	/******************************************************************/
 	/*                    ------ Definition ------                    */
@@ -409,6 +443,48 @@ namespace arch
 		mask_key[3] = ++mk3;
 	}
 
+	/******************************************************************/
+	/*                    ------ Definition ------                    */
+	/*                      Protocol Arch Object                      */
+	/******************************************************************/
+	inline ProtocolObjectArch::ProtocolObjectArch()
+		: version(APV_Unknown)
+	{}
+
+	inline ProtocolObjectArch::ProtocolObjectArch(ProtocolObjectArch && rhs) noexcept
+		: version(rhs.version)
+		, data(std::move(rhs.data))
+	{
+		rhs.version = APV_Unknown;
+	}
+
+	inline ProtocolObjectArch::~ProtocolObjectArch()
+	{}
+
+	inline ProtocolObjectArch& ProtocolObjectArch::operator=(ProtocolObjectArch && rhs) noexcept
+	{
+		version = rhs.version;
+		data = std::move(rhs.data);
+
+		rhs.version = APV_Unknown;
+		return *this;
+	}
+
+	inline IProtocolObject& ProtocolObjectArch::acquire(IProtocolObject & src) noexcept
+	{
+		ProtocolObjectArch& srcobj = static_cast<ProtocolObjectArch&>(src);
+		version = srcobj.version;
+		data = std::move(srcobj.data);
+
+		srcobj.version = APV_Unknown;
+
+		return *this;
+	}
+
+	inline void ProtocolObjectArch::dispose() noexcept
+	{
+		delete this;
+	}
 }
 
 

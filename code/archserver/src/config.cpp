@@ -1,5 +1,6 @@
 #include "config.hpp"
 #include "tinyxml2.h"
+#include "protocols.hpp"
 
 using namespace std;
 using namespace arch;
@@ -148,6 +149,10 @@ namespace arch
 				{
 					server_phase.max_archmsg_queue_len = element.IntText();
 				}
+				else if (strcmp(name, "Protocol") == 0)
+				{
+					server_phase.protocol = protocol_name_to_val(element.GetText());
+				}
 
 				return true;
 			}
@@ -205,4 +210,28 @@ bool arch::config::load_config(const std::string& configfile)
 	retval = doc.Accept(&xv);
 
 	return retval;
+}
+
+int arch::config::protocol_name_to_val(const std::string& pname)
+{
+	static std::map<std::string, int> map_name2val(
+		{ 
+			{"http", PT_Http},
+			{"websocket", PT_WebSocket},
+			{"arch", PT_Arch}
+		});
+
+	int res = PT_Http;
+
+	const auto& val = map_name2val.find(pname);
+	if (val != map_name2val.end())
+	{
+		res = val->second;
+	}
+	else
+	{
+		throw std::runtime_error("Protocol not found.");
+	}
+	
+	return res;
 }

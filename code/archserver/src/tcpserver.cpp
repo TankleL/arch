@@ -1,7 +1,9 @@
 #include "sha1.hpp"
+#include "config.hpp"
 #include "tcpserver.hpp"
 #include "protocol-http.hpp"
 #include "protocol-websocket.hpp"
+#include "protocol-arch.hpp"
 
 using namespace std;
 using namespace arch;
@@ -61,6 +63,10 @@ TCPServer::TCPServer(ArchMessageQueue* in_queue, ArchMessageQueue* out_queue)
 
 		case PT_WebSocket:
 			_proto_procs[proto_type] = new ProtoProcWebSocket();
+			break;
+
+		case PT_Arch:
+			_proto_procs[proto_type] = new ProtoProcArch();
 			break;
 
 		default:
@@ -124,8 +130,8 @@ void TCPServer::_on_connect(uv_stream_t *server, int status)
 
 		TCPConnection* conn = svr_inst->_connmgr.new_connection(
 			(uv_stream_t*)client,
-			PT_Http,	// Use http as defualt protocol
-			PT_Http);	// Use http as defualt protocol
+			(ProtocolType)config::server_phase.protocol,	// Use http as defualt protocol
+			(ProtocolType)config::server_phase.protocol);	// Use http as defualt protocol
 		client->data = conn;
 
 		if (!uv_accept(server, (uv_stream_t*)client))
@@ -171,6 +177,10 @@ void TCPServer::_on_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf
 
 				case PT_WebSocket:
 					conn->set_proto_obj(new Internal_ProtoObjectWebSocket());
+					break;
+
+				case PT_Arch:
+					conn->set_proto_obj(new Internal_ProtoObjectArch());
 					break;
 
 				default:

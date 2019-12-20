@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 #include <cassert>
+#include <string>
 #include "acquirable.hpp"
 #include "disposable.hpp"
 
@@ -214,8 +215,8 @@ namespace arch
 		void					dispose() noexcept override;
 
 	public:
-		uint32_t				version;
 		std::vector<uint8_t>	data;
+		uint32_t				version;
 	};
 
 	/******************************************************************/

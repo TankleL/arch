@@ -62,8 +62,9 @@ _GOTO_LAB_PROC_CONTENT:
 			uint32_t needread = obj._content_length - (uint32_t)obj.data.size();
 			if (needread > 0)
 			{
-				needread = toreadlen < needread ? (uint32_t)toreadlen : needread;
-				obj.data.insert(obj.data.end(), readbuf, readbuf + needread);
+				needread = (toreadlen - procbytes) < needread ? (uint32_t)toreadlen : needread;
+				obj.data.insert(obj.data.end(), readbuf + procbytes, readbuf + procbytes + needread);
+				procbytes += needread;
 
 				if (obj.data.size() == obj._content_length)
 				{

@@ -12,5 +12,6 @@ add_subdirectory( archserver )
 add_subdirectory( libam )
 add_subdirectory( module-demo )
 add_subdirectory( module-httpd )
+add_subdirectory( module-archd )
 
 message("leave-level < top level")

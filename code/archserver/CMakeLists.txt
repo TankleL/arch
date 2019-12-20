@@ -3,12 +3,10 @@ cmake_minimum_required (VERSION 3.0)
 message("enter-level > " archserver)
 
 FILE(GLOB_RECURSE ARCHSVR_INC_FILES "inc/*.hpp")
-FILE(GLOB_RECURSE ARCHSVR_SINC_FILES "shared_inc/*.hpp")
 
 aux_source_directory (src ARCHSVR_SRC_FILES)
 
 include_directories(inc)
-include_directories(shared_inc/)
 include_directories(deps/libuv/include)
 include_directories(deps/tinyxml2/inc)
 

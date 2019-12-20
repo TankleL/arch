@@ -7,7 +7,7 @@
 		<Port>8088</Port>
 		<Backlog>1000</Backlog>
 		<CoreNumber>6</CoreNumber>
-		<Protocol>Arch</Protocol>
+		<Protocol>arch</Protocol>
 		<Max_Living_Connections>100000</Max_Living_Connections>
 		<Max_ArchMessage_Queue_Length>100000</Max_ArchMessage_Queue_Length>
 	</ServerPhase>
@@ -23,6 +23,11 @@
 			<Name>Module-HTTPD</Name>
 			<BinName>mdlhttpd.dll</BinName>
 			<Binding_Protocoal>17</Binding_Protocoal>
+		</Module>
+		<Module>
+			<Name>Module-Archd</Name>
+			<BinName>mdlarchd.dll</BinName>
+			<Binding_Protocoal>2</Binding_Protocoal>
 		</Module>
 	</ModulePhase>
 </ArchServer_Config>

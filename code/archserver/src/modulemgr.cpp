@@ -67,19 +67,15 @@ void ModuleManager::_load_plugin_modules()
 	{
 		int pt = _get_protocol_type(m.second.proto_type);
 
-		if (pt > PT_ProtoTypesNum)
-		{ // plugin modules
+		IModule* md = new PluginModule(
+			config::module_phase.root_path,
+			m.second.name,
+			m.second.bin_name,
+			pt);
 
-			IModule* md = new PluginModule(
-				config::module_phase.root_path,
-				m.second.name,
-				m.second.bin_name,
-				pt);
-
-			if (md->init())
-			{
-				_modules[pt] = md;
-			}
+		if (md->init())
+		{
+			_modules[pt] = md;
 		}
 	}
 }
