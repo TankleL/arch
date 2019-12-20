@@ -76,8 +76,8 @@ namespace arch
 		ProtocolObjectHttp& operator=(ProtocolObjectHttp&& rhs) noexcept;
 
 	public:
-		virtual ProtocolType	get_protocol_type() const noexcept override { return PT_Http; }
-		IProtocolObject& acquire(IProtocolObject& src) noexcept override;
+		virtual ProtocolType	get_protocol_type() const noexcept override	{ return PT_Http; }
+		IProtocolObject&		acquire(IProtocolObject& src) noexcept override;
 		void					dispose() noexcept override;
 
 	public:
@@ -173,7 +173,7 @@ namespace arch
 
 	public:
 		virtual ProtocolType	get_protocol_type() const noexcept override { return PT_WebSocket; }
-		IProtocolObject& acquire(IProtocolObject& src) noexcept override;
+		IProtocolObject&		acquire(IProtocolObject& src) noexcept override;
 		void					dispose() noexcept override;
 
 	public:
@@ -211,7 +211,7 @@ namespace arch
 
 	public:
 		virtual ProtocolType	get_protocol_type() const noexcept override { return PT_Arch; }
-		IProtocolObject& acquire(IProtocolObject& src) noexcept override;
+		IProtocolObject&		acquire(IProtocolObject& src) noexcept override;
 		void					dispose() noexcept override;
 
 	public:
@@ -451,7 +451,7 @@ namespace arch
 		: version(APV_Unknown)
 	{}
 
-	inline ProtocolObjectArch::ProtocolObjectArch(ProtocolObjectArch && rhs) noexcept
+	inline ProtocolObjectArch::ProtocolObjectArch(ProtocolObjectArch&& rhs) noexcept
 		: version(rhs.version)
 		, data(std::move(rhs.data))
 	{
@@ -461,7 +461,7 @@ namespace arch
 	inline ProtocolObjectArch::~ProtocolObjectArch()
 	{}
 
-	inline ProtocolObjectArch& ProtocolObjectArch::operator=(ProtocolObjectArch && rhs) noexcept
+	inline ProtocolObjectArch& ProtocolObjectArch::operator=(ProtocolObjectArch&& rhs) noexcept
 	{
 		version = rhs.version;
 		data = std::move(rhs.data);
@@ -470,7 +470,7 @@ namespace arch
 		return *this;
 	}
 
-	inline IProtocolObject& ProtocolObjectArch::acquire(IProtocolObject & src) noexcept
+	inline IProtocolObject& ProtocolObjectArch::acquire(IProtocolObject& src) noexcept
 	{
 		ProtocolObjectArch& srcobj = static_cast<ProtocolObjectArch&>(src);
 		version = srcobj.version;

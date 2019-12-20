@@ -59,12 +59,12 @@ _GOTO_LAB_PROC_HEADER_EXT_V0_1:	// Ugly but simple way.
 	case APP_Parsing_Content:
 _GOTO_LAB_PROC_CONTENT:
 		{
-			uint32_t needread = obj._content_length - (uint32_t)obj.data.size();
-			if (needread > 0)
+			uint32_t canread = obj._content_length - (uint32_t)obj.data.size();
+			if (canread > 0)
 			{
-				needread = (toreadlen - procbytes) < needread ? (uint32_t)toreadlen : needread;
-				obj.data.insert(obj.data.end(), readbuf + procbytes, readbuf + procbytes + needread);
-				procbytes += needread;
+				canread = (toreadlen - procbytes) < canread ? (uint32_t)(toreadlen - procbytes) : canread;
+				obj.data.insert(obj.data.end(), readbuf + procbytes, readbuf + procbytes + canread);
+				procbytes += canread;
 
 				if (obj.data.size() == obj._content_length)
 				{
@@ -88,7 +88,25 @@ bool ProtoProcArch::proc_ostrm(std::string& obuffer, const IProtocolObject& src)
 {
 	const Internal_ProtoObjectArch& obj = static_cast<const Internal_ProtoObjectArch&>(src);
 	
-	return true;
+	if (obj.version == APV_0_1)
+	{
+		// pack version
+		obuffer.push_back((uint8_t)obj.version);
+
+		// pack content length
+		uint16_t content_length = (uint16_t)obj.data.size();
+		obuffer.push_back(content_length & 0xff);
+		obuffer.push_back((content_length & 0xff00) >> 8);
+
+		// pack content
+		obuffer.insert(obuffer.end(), obj.data.begin(), obj.data.end());
+
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 

@@ -16,7 +16,7 @@ namespace arch
 		CCT_Switch_AfterSend_ToWebSocket,
 	};
 
-	class ArchMessage
+	class ArchMessage : public IAcquriable<ArchMessage>
 	{
 	public:
 		ArchMessage();
@@ -29,6 +29,8 @@ namespace arch
 	public:
 		ArchMessage(const ArchMessage&) = delete;
 		ArchMessage& operator=(const ArchMessage&) = delete;
+
+		virtual ArchMessage& acquire(ArchMessage& src) noexcept override;
 
 	public:
 		void					set_data_object(IProtocolObject* dobj) noexcept;
@@ -81,10 +83,15 @@ namespace arch
 
 	inline ArchMessage& ArchMessage::operator=(ArchMessage&& rhs) noexcept
 	{
-		_dobj = rhs._dobj;				rhs._dobj = nullptr;
-		_hlink = rhs._hlink;			rhs._hlink = nullptr;
-		_uid = rhs._uid;				rhs._uid = 0;
-		_cct = rhs._cct;				rhs._cct = CCT_None;
+		return acquire(rhs);
+	}
+
+	inline ArchMessage& ArchMessage::acquire(ArchMessage& src) noexcept
+	{
+		_dobj = src._dobj;				src._dobj = nullptr;
+		_hlink = src._hlink;			src._hlink = nullptr;
+		_uid = src._uid;				src._uid = 0;
+		_cct = src._cct;				src._cct = CCT_None;
 		return *this;
 	}
 

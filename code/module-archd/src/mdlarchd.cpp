@@ -88,6 +88,50 @@ bool decode_msg(Message& dst, const arch::ProtocolObjectArch& src)
 	}
 }
 
+void encode_msg(arch::ProtocolObjectArch& dobj, const Message& msg)
+{
+	dobj.version = APV_0_1;
+
+	// encode evid
+	int evid = MessageUtil::get_event_id(msg.get_id());
+	if (evid < 0x80) // 0 ~ 7 bits
+	{
+		// [byte 0] 0xxx xxxx
+		dobj.data.push_back(evid);
+	}
+	else if (evid < 0x4000) // 8 ~ 14 bits
+	{
+		// [byte 0] 10xx xxxx
+		// [byte 1] xxxx xxxx
+
+		dobj.data.push_back(0x80 | (evid & 0x3f));
+		dobj.data.push_back(evid >> 6);
+	}
+	else if (evid < 0x200000) // 15 ~ 21 bits
+	{
+		// [byte 0] 110x xxxx
+		// [byte 1] xxxx xxxx
+		// [byte 2] xxxx xxxx
+
+		dobj.data.push_back(0xc0 | (evid & 0x1f));
+		dobj.data.push_back((evid & 0x1fe0) >> 5);
+		dobj.data.push_back(evid >> 13);
+	}
+	else // 22 ~ 24 bits
+	{
+		// [byte 0] 1110 0000
+		// [byte 1] xxxx xxxx
+		// [byte 2] xxxx xxxx
+		// [byte 3] xxxx xxxx
+
+		dobj.data.push_back(0xe0);
+		dobj.data.push_back(evid & 0xff);
+		dobj.data.push_back(evid & 0xff00 >> 8);
+		dobj.data.push_back(evid & 0xff0000 >> 16);
+	}
+	dobj.data.insert(dobj.data.end(), msg.get_data(), msg.get_data() + msg.get_length());
+}
+
 int ModuleArchd::Init()
 {
 	cout << "module mdlarchd has been loaded" << endl;
@@ -112,7 +156,9 @@ void ModuleArchd::service_processor(arch::ArchMessage& onode, const arch::ArchMe
 	Message srcmsg;
 	decode_msg(srcmsg, *sobj);
 
+	// echo server.
 
+	encode_msg(*dobj, srcmsg);
 	onode.set_data_object(dobj);
 	cout << "mdlarchd: respond a request" << endl;
 }
