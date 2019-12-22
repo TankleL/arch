@@ -29,26 +29,6 @@ IModule* ModuleManager::get_module(int proto_number) const
 	}
 }
 
-int ModuleManager::_get_protocol_type(const std::string& proto_type)
-{
-	if (proto_type == "HTTP")
-	{
-		return PT_Http;
-	}
-	else if (proto_type == "WebSocket")
-	{
-		return PT_WebSocket;
-	}
-	else
-	{
-		int proto_number;
-		std::stringstream ss;
-		ss << proto_type;
-		ss >> proto_number;
-		return proto_number;
-	}
-}
-
 void ModuleManager::load_all_modules()
 {
 	_load_builtin_modules();
@@ -65,7 +45,7 @@ void ModuleManager::_load_plugin_modules()
 {
 	for (const auto& m : config::module_phase.modules)
 	{
-		int pt = _get_protocol_type(m.second.proto_type);
+		int pt = m.second.proto_type;
 
 		IModule* md = new PluginModule(
 			config::module_phase.root_path,

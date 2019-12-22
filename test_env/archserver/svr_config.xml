@@ -17,17 +17,17 @@
 		<Module>
 			<Name>Module-Demo</Name>
 			<BinName>mdldemo.dll</BinName>
-			<Binding_Protocoal>16</Binding_Protocoal>
+			<Binding_Protocoal>websocket</Binding_Protocoal>
 		</Module>
 		<Module>
 			<Name>Module-HTTPD</Name>
 			<BinName>mdlhttpd.dll</BinName>
-			<Binding_Protocoal>17</Binding_Protocoal>
+			<Binding_Protocoal>http</Binding_Protocoal>
 		</Module>
 		<Module>
 			<Name>Module-Archd</Name>
 			<BinName>mdlarchd.dll</BinName>
-			<Binding_Protocoal>2</Binding_Protocoal>
+			<Binding_Protocoal>arch</Binding_Protocoal>
 		</Module>
 	</ModulePhase>
 </ArchServer_Config>

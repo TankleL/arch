@@ -22,9 +22,6 @@ namespace arch
 		void	_load_plugin_modules();
 
 	private:
-		int _get_protocol_type(const std::string& proto_type);
-
-	private:
 		std::unordered_map<int, IModule*>	_modules;
 	};
 }

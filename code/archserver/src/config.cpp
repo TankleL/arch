@@ -184,7 +184,7 @@ namespace arch
 					else			return false;
 
 					const XMLElement* ele_binding_proto = element.FirstChildElement("Binding_Protocoal");
-					if (ele_binding_proto)	mdl.proto_type = ele_binding_proto->GetText();
+					if (ele_binding_proto)	mdl.proto_type = protocol_name_to_val(ele_binding_proto->GetText());
 					else					return false;
 
 					module_phase.modules[mdl.proto_type] = mdl;

@@ -30,13 +30,13 @@ namespace arch
 		{
 			std::string		name;
 			std::string		bin_name;
-			std::string		proto_type;
+			int				proto_type;
 		} module_t;
 
 		typedef struct module_phase_st
 		{
 			std::string		root_path;
-			std::unordered_map<std::string, module_t>	modules;
+			std::unordered_map<int, module_t>	modules;	// mapping protocol to module
 		} module_phase_t;
 
 		extern std::unordered_map<std::string, std::string>		global_keyvalues;
