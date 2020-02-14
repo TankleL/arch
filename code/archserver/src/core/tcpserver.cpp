@@ -47,22 +47,23 @@ void TCPServer::_on_connect(
 	if (status)
 	{
 		auto conn = tcp_handle.svr._connections.new_connection();
-		conn.lock()->set_stream(
+		auto connection = conn.lock();
+		connection->set_stream(
 			std::make_shared<tcp_t>(
 				tcp_handle.svr,
-				conn.lock()->get_id(),
+				connection->get_id(),
 				conn));
 
-		if (!uv_accept(stream, (uv_stream_t*)&*(conn.lock()->get_stream().lock())))
+		if (!uv_accept(stream, (uv_stream_t*)&*(connection->get_stream().lock())))
 		{
 			uv_read_start(
-				(uv_stream_t*)&*(conn.lock()->get_stream().lock()),
+				(uv_stream_t*)&*(connection->get_stream().lock()),
 				_on_alloc_read_buf,
 				_on_read);
 		}
 		else
 		{
-			tcp_handle.svr._close_connection(*(conn.lock()));
+			tcp_handle.svr._close_connection(*connection);
 		}
 	}
 }
