@@ -8,6 +8,20 @@
 #include <exception>
 #include <cstdint>
 #include <cmath>
+#include <thread>
+#include <condition_variable>
+#include <mutex>
+#include <functional>
+#include <limits>
 
 typedef size_t index_t;
+
+#define UNCOPYABLE(name)	\
+		private:	\
+			name(const name&) = delete;	\
+			name(name&&) = delete;	\
+			name& operator=(const name&) = delete;	\
+			name& operator=(name&&) = delete
+
+
 
