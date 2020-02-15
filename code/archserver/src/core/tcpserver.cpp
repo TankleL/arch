@@ -18,7 +18,7 @@ TCPServer::TCPServer(
 	, _proto_handlers{
 		/*PT_Http*/ nullptr,
 		/*PT_WebSocket */ nullptr,
-		/*PT_Arch*/ std::make_unique<protocol_arch::ArchProtocol>()}
+		/*PT_Arch*/ std::make_unique<ipro::protocol_arch::ArchProtocol>()}
 {}
 
 TCPServer::~TCPServer()
@@ -163,8 +163,7 @@ bool TCPServer::_ensure_protocol_data(Connection<tcp_t>& conn)
 		{
 		case PT_Arch:
 			conn.set_app_protocol_data(
-				std::make_unique<std::any>(
-					std::make_any<protocol_arch::ArchProtocolData>()));
+				std::make_unique<ipro::protocol_arch::ArchProtocolData>());
 			break;
 
 		default:

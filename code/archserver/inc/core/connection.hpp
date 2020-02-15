@@ -72,19 +72,19 @@ namespace core
 			return _oapp_protocol;
 		}
 
-		void set_app_protocol_data(std::unique_ptr<std::any>&& protocol_data) noexcept
+		void set_app_protocol_data(std::unique_ptr<IProtocolData>&& protocol_data) noexcept
 		{
 			_app_prot_data = std::move(protocol_data);
 		}
 
-		std::any* get_app_protocol_data() const noexcept
+		IProtocolData* get_app_protocol_data() const noexcept
 		{
 			return _app_prot_data.get();
 		}
 
 	private:
 		std::unique_ptr<StreamT>		_stream;
-		std::unique_ptr<std::any>		_app_prot_data;
+		std::unique_ptr<IProtocolData>	_app_prot_data;
 		conn_id_t		_id;
 		ProtocolType	_iapp_protocol;
 		ProtocolType	_oapp_protocol;

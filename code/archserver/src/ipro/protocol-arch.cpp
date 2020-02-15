@@ -1,16 +1,39 @@
 #include "protocol-arch.hpp"
 
+using namespace core;
+
+ipro::protocol_arch::ArchProtocolData::ArchProtocolData()
+	: _version(APV_Unknown)
+	, _header_ext_cache({ 0 })
+	, _header_ext_cache_idx(0)
+	, _parsing_phase(APP_Start)
+	, _content_length(0)
+	, _svc_id(0)
+{}
+
+ipro::protocol_arch::ArchProtocolData::~ArchProtocolData()
+{}
+
+core::IProtocolData::service_id_t
+ipro::protocol_arch::ArchProtocolData::service_id() const noexcept
+{
+	return _svc_id;
+}
+
+
+
 core::ProtocolType
-core::protocol_arch::ArchProtocol::get_protocol_type() const noexcept
+ipro::protocol_arch::ArchProtocol::get_protocol_type() const noexcept
 {
 	return PT_Arch;
 }
 
 core::IProtocolHandler::ProtoProcRet
-core::protocol_arch::ArchProtocol::proc_istrm(std::any& dest, std::uint8_t* readbuf, size_t toreadlen, size_t& procbytes)
+ipro::protocol_arch::ArchProtocol::proc_istrm(
+	IProtocolData& dest, std::uint8_t* readbuf, size_t toreadlen, size_t& procbytes)
 {
 	procbytes = 0;
-	ArchProtocolData& obj = std::any_cast<ArchProtocolData&>(dest);
+	ArchProtocolData& obj = static_cast<ArchProtocolData&>(dest);
 
 	switch (obj._parsing_phase)
 	{
@@ -89,9 +112,9 @@ _GOTO_LAB_PROC_CONTENT:
 
 
 bool
-core::protocol_arch::ArchProtocol::proc_ostrm(std::string& obuffer, const std::any& src)
+ipro::protocol_arch::ArchProtocol::proc_ostrm(std::string& obuffer, const IProtocolData& src)
 {
-	const ArchProtocolData& obj = std::any_cast<const ArchProtocolData&>(src);
+	const ArchProtocolData& obj = static_cast<const ArchProtocolData&>(src);
 
 	if (obj._version == APV_0_1)
 	{
@@ -114,7 +137,7 @@ core::protocol_arch::ArchProtocol::proc_ostrm(std::string& obuffer, const std::a
 }
 
 bool
-core::protocol_arch::ArchProtocol::proc_check_switch(ProtocolType& dest_proto, const std::any& obj)
+ipro::protocol_arch::ArchProtocol::proc_check_switch(ProtocolType& dest_proto, const IProtocolData& obj)
 {
 	return false;
 }
