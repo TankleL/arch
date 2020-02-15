@@ -13,6 +13,9 @@
 #include <mutex>
 #include <functional>
 #include <limits>
+#include <any>
+#include <array>
+#include <cassert>
 
 typedef size_t index_t;
 

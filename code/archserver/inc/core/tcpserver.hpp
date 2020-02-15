@@ -3,6 +3,7 @@
 #include "uv.h"
 #include "connmap.hpp"
 #include "buffer.hpp"
+#include "protocol.hpp"
 
 namespace core
 {
@@ -17,7 +18,7 @@ namespace core
 			_tcp_t(
 				TCPServer& server,
 				conn_id_t connection_id,
-				const std::weak_ptr<Connection<_tcp_t>>& connection)
+				Connection<_tcp_t>* connection)
 				: uv_tcp_t({})
 				, svr(server)
 				, conn_id(connection_id)
@@ -27,7 +28,7 @@ namespace core
 			// extended data:
 			TCPServer&			svr;
 			conn_id_t			conn_id;
-			std::weak_ptr<Connection<_tcp_t>>	conn;
+			Connection<_tcp_t>*	conn;
 		} tcp_t;
 
 		typedef struct _buf_t : public uv_buf_t
@@ -61,14 +62,19 @@ namespace core
 	private:
 		void _work_thread();
 		void _close_connection(const Connection<tcp_t>& conn);
+		bool _ensure_protocol_data(Connection<tcp_t>& conn);
+		IProtocolHandler* _get_protocol_handler(ProtocolType ptype);
+		void _switch_protocol(Connection<tcp_t>& conn);
 
 	private:
 		std::string		_ipaddr;
 		uint16_t		_port;
 		int				_backlog;
 
+		uv_loop_t		_uvloop;
 		tcp_t			_tcp_handle;
 		ConnMap<_tcp_t>	_connections;
+		std::array<std::unique_ptr<IProtocolHandler>, PT_ProtoTypesNum> _proto_handlers;
 
 	private:
 		std::thread		_thread;

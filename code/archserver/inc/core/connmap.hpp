@@ -24,7 +24,7 @@ namespace core
 		{}
 
 	public:
-		std::weak_ptr<conn_t> new_connection()
+		conn_t* new_connection(ProtocolType default_procotol)
 		{
 			std::unique_lock<std::mutex>	lock;
 			conn_id_t id = (_top_conn_id++) % max_conn_id;
@@ -32,11 +32,11 @@ namespace core
 			const auto& old_conn = _conns.find(id);
 			if (old_conn == _conns.cend())
 			{
-				std::shared_ptr<conn_t> conn =
-					std::make_shared<conn_t>(id);
-				_conns.insert({ id, conn });
-
-				return conn;
+				std::unique_ptr<conn_t> conn =
+					std::make_unique<conn_t>(id, default_procotol);
+				conn_t* retval = conn.get();
+				_conns.insert({ id, std::move(conn) });
+				return retval;
 			}
 
 			throw ArchException_ItemAlreadyExist();
@@ -52,7 +52,7 @@ namespace core
 		std::mutex	_top_conn_id_mtx;
 		std::unordered_map<
 			conn_id_t,
-			std::shared_ptr<conn_t>> _conns;
+			std::unique_ptr<conn_t>> _conns;
 	};
 
 }
