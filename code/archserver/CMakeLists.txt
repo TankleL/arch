@@ -26,11 +26,8 @@ include_directories(inc/exceptions "inc/exceptions/*.hpp")
 file(GLOB_RECURSE ARCHSVR_EXCEPTIONS_INC_FILES)
 aux_source_directory(src/svc ARCHSVR_EXCEPTIONS_SRC_FILES)
 
-include_directories(deps/libuv/include)
-include_directories(deps/tinyxml2/inc)
-
-add_subdirectory(deps/libuv)
-add_subdirectory(deps/tinyxml2)
+include_directories(${LIBUV_INC})
+include_directories(${TINYXML2_INC})
 
 add_compile_definitions(TEST_PATH_CONFIG_FILE="${TEST_ENV_ROOT_PATH}/archserver/svr_config.xml")
 add_compile_definitions(TEST_PATH_RES_MODULES_ROOT="${TEST_ENV_ROOT_PATH}/modules")

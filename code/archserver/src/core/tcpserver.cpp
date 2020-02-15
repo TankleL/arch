@@ -14,6 +14,7 @@ TCPServer::TCPServer(
 	, _port(port)
 	, _backlog(backlog)
 	, _svc_inst_count(svc_inst_count)
+	, _uvloop({})
 	, _tcp_handle(*this, 0, {})
 	, _seed_inque(0)
 	, _seed_outque(0)
@@ -26,8 +27,11 @@ TCPServer::TCPServer(
 {
 	for (int i = 0; i < _svc_inst_count; ++i)
 	{
-		_inques.push_back(std::move(ProtocolQueue()));
-		_outques.push_back(std::move(ProtocolQueue()));
+		_inques.push_back(std::make_unique<ProtocolQueue>());
+		_outques.push_back(std::make_unique<ProtocolQueue>());
+		_pipes.push_back(std::make_unique<PipeClient>(
+			*(_inques[i].get()),
+			*(_outques[i].get())));
 	}
 }
 
@@ -122,7 +126,7 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 
 					tcp_handle.svr._inques[
 						(++tcp_handle.svr._seed_inque) % tcp_handle.svr._svc_inst_count]
-						.push(std::move(node));
+						.get()->push(std::move(node));
 				}
 				else
 				{

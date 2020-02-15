@@ -5,6 +5,7 @@
 #include "buffer.hpp"
 #include "protocol.hpp"
 #include "protocol-queue.hpp"
+#include "pipeclient.hpp"
 
 namespace core
 {
@@ -78,8 +79,9 @@ namespace core
 		tcp_t			_tcp_handle;
 		ConnMap<_tcp_t>	_connections;
 		std::array<std::unique_ptr<IProtocolHandler>, PT_ProtoTypesNum> _proto_handlers;
-		std::vector<ProtocolQueue>	_inques;	int _seed_inque;
-		std::vector<ProtocolQueue>	_outques;	int _seed_outque;
+		std::vector<std::unique_ptr<ProtocolQueue>>	_inques;	int _seed_inque;
+		std::vector<std::unique_ptr<ProtocolQueue>>	_outques;	int _seed_outque;
+		std::vector<std::unique_ptr<PipeClient>>	_pipes;
 
 	private:
 		std::thread		_thread;
