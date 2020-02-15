@@ -27,7 +27,7 @@ namespace core
 		conn_t* new_connection(ProtocolType default_procotol)
 		{
 			std::unique_lock<std::mutex>	lock;
-			conn_id_t id = (_top_conn_id++) % max_conn_id;
+			conn_id_t id = (++_top_conn_id) % max_conn_id;
 
 			const auto& old_conn = _conns.find(id);
 			if (old_conn == _conns.cend())

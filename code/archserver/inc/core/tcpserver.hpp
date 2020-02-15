@@ -4,6 +4,7 @@
 #include "connmap.hpp"
 #include "buffer.hpp"
 #include "protocol.hpp"
+#include "protocol-queue.hpp"
 
 namespace core
 {
@@ -51,6 +52,7 @@ namespace core
 
 	public:
 		TCPServer(
+			int svc_inst_count,
 			const std::string& ipaddr,
 			uint16_t port,
 			int backlog);
@@ -70,11 +72,14 @@ namespace core
 		std::string		_ipaddr;
 		uint16_t		_port;
 		int				_backlog;
+		int				_svc_inst_count;
 
 		uv_loop_t		_uvloop;
 		tcp_t			_tcp_handle;
 		ConnMap<_tcp_t>	_connections;
 		std::array<std::unique_ptr<IProtocolHandler>, PT_ProtoTypesNum> _proto_handlers;
+		std::vector<ProtocolQueue>	_inques;	int _seed_inque;
+		std::vector<ProtocolQueue>	_outques;	int _seed_outque;
 
 	private:
 		std::thread		_thread;

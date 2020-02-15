@@ -6,20 +6,30 @@
 using namespace core;
 
 TCPServer::TCPServer(
+	int svc_inst_count,
 	const std::string& ipaddr,
 	uint16_t port,
 	int backlog)
 	: _ipaddr(ipaddr)
 	, _port(port)
 	, _backlog(backlog)
+	, _svc_inst_count(svc_inst_count)
 	, _tcp_handle(*this, 0, {})
+	, _seed_inque(0)
+	, _seed_outque(0)
 	, _thread(std::bind(&TCPServer::_work_thread, this))
 	, _quit(false)
 	, _proto_handlers{
 		/*PT_Http*/ nullptr,
 		/*PT_WebSocket */ nullptr,
 		/*PT_Arch*/ std::make_unique<ipro::protocol_arch::ArchProtocol>()}
-{}
+{
+	for (int i = 0; i < _svc_inst_count; ++i)
+	{
+		_inques.push_back(std::move(ProtocolQueue()));
+		_outques.push_back(std::move(ProtocolQueue()));
+	}
+}
 
 TCPServer::~TCPServer()
 {}
@@ -87,12 +97,13 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 		while(goon)
 		{
 			if (!tcp_handle.svr._ensure_protocol_data(*conn)) break;
+			auto data = conn->get_app_protocol_data().lock();
 
 			IProtocolHandler* phdl = tcp_handle.svr._get_protocol_handler(conn->get_iapp_protocol());
 
 			size_t	procbytes = 0;
 			IProtocolHandler::ProtoProcRet proc_ret = phdl->proc_istrm(
-				*(conn->get_app_protocol_data()),
+				*data,
 				(uint8_t*)(buf->base + offset),
 				nread,
 				procbytes);
@@ -105,11 +116,13 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 			case IProtocolHandler::PPR_PULSE:
 			{
 				ProtocolType prot_switchto = PT_Unknown;
-				if (!phdl->proc_check_switch(prot_switchto, *(conn->get_app_protocol_data())))
+				if (!phdl->proc_check_switch(prot_switchto, *data))
 				{
-					//ArchMessage inode(conn->get_proto_obj(), conn->get_hlink(), conn->get_uid());
-					//conn->set_proto_obj(nullptr);
-					//conn->get_uvserver()->_in_queue->push(std::move(inode));
+					ProtocolQueue::node_t node(data, conn->get_id());
+
+					tcp_handle.svr._inques[
+						(++tcp_handle.svr._seed_inque) % tcp_handle.svr._svc_inst_count]
+						.push(std::move(node));
 				}
 				else
 				{
@@ -157,13 +170,14 @@ void TCPServer::_close_connection(const Connection<tcp_t>& conn)
 bool TCPServer::_ensure_protocol_data(Connection<tcp_t>& conn)
 {
 	bool succ = true;
-	if (nullptr == conn.get_app_protocol_data())
+	auto data = conn.get_app_protocol_data().lock();
+	if (nullptr == data)
 	{
 		switch (conn.get_iapp_protocol())
 		{
 		case PT_Arch:
 			conn.set_app_protocol_data(
-				std::make_unique<ipro::protocol_arch::ArchProtocolData>());
+				std::make_shared<ipro::protocol_arch::ArchProtocolData>());
 			break;
 
 		default:
