@@ -27,5 +27,9 @@ typedef size_t index_t;
 			name& operator=(const name&) = delete;	\
 			name& operator=(name&&) = delete
 
+#define STATIC_CLASS(classname)	\
+		private:	\
+			classname(){}	\
+			UNCOPYABLE(classname)
 
 

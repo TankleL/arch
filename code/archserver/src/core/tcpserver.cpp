@@ -2,38 +2,26 @@
 #include "connmap.hpp"
 #include "protocol.hpp"
 #include "protocol-arch.hpp"
+#include "service-mgr.hpp"
 
 using namespace core;
 
 TCPServer::TCPServer(
-	int svc_inst_count,
 	const std::string& ipaddr,
 	uint16_t port,
 	int backlog)
 	: _ipaddr(ipaddr)
 	, _port(port)
 	, _backlog(backlog)
-	, _svc_inst_count(svc_inst_count)
 	, _uvloop({})
 	, _tcp_handle(*this, 0, {})
-	, _seed_inque(0)
-	, _seed_outque(0)
 	, _thread(std::bind(&TCPServer::_work_thread, this))
 	, _quit(false)
 	, _proto_handlers{
 		/*PT_Http*/ nullptr,
 		/*PT_WebSocket */ nullptr,
 		/*PT_Arch*/ std::make_unique<ipro::protocol_arch::ArchProtocol>()}
-{
-	for (int i = 0; i < _svc_inst_count; ++i)
-	{
-		_inques.push_back(std::make_unique<ProtocolQueue>());
-		_outques.push_back(std::make_unique<ProtocolQueue>());
-		_pipes.push_back(std::make_unique<PipeClient>(
-			*(_inques[i].get()),
-			*(_outques[i].get())));
-	}
-}
+{}
 
 TCPServer::~TCPServer()
 {}
@@ -123,10 +111,7 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 				if (!phdl->proc_check_switch(prot_switchto, *data))
 				{
 					ProtocolQueue::node_t node(data, conn->get_id());
-
-					tcp_handle.svr._inques[
-						(++tcp_handle.svr._seed_inque) % tcp_handle.svr._svc_inst_count]
-						.get()->push(std::move(node));
+					svc::ServiceManager::dispatch_protocol_data(std::move(node));
 				}
 				else
 				{

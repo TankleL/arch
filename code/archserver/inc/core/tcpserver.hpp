@@ -53,7 +53,6 @@ namespace core
 
 	public:
 		TCPServer(
-			int svc_inst_count,
 			const std::string& ipaddr,
 			uint16_t port,
 			int backlog);
@@ -73,15 +72,11 @@ namespace core
 		std::string		_ipaddr;
 		uint16_t		_port;
 		int				_backlog;
-		int				_svc_inst_count;
 
 		uv_loop_t		_uvloop;
 		tcp_t			_tcp_handle;
 		ConnMap<_tcp_t>	_connections;
 		std::array<std::unique_ptr<IProtocolHandler>, PT_ProtoTypesNum> _proto_handlers;
-		std::vector<std::unique_ptr<ProtocolQueue>>	_inques;	int _seed_inque;
-		std::vector<std::unique_ptr<ProtocolQueue>>	_outques;	int _seed_outque;
-		std::vector<std::unique_ptr<PipeClient>>	_pipes;
 
 	private:
 		std::thread		_thread;
