@@ -11,14 +11,14 @@ include_directories(inc)
 file(GLOB_RECURSE ARCHSVC_INC_FILES "inc/*.hpp")
 aux_source_directory (src ARCHSVC_SRC_FILES)
 
-add_library(archsvc STATIC
+add_library(archsvc_a STATIC
 #------ header files
     ${ARCHSVC_INC_FILES}
 #------ source files
     ${ARCHSVC_SRC_FILES}
 )
 
-target_link_libraries(archsvc uv_a)
+target_link_libraries(archsvc_a uv_a)
 
 
 message("leave-level < archservice")

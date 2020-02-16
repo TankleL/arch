@@ -80,7 +80,7 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 	tcp_t& tcp_handle = (tcp_t&)* stream;
 
 	auto& conn = tcp_handle.conn;
-	if (conn && nread >= 0)
+	if (conn && nread > 0)
 	{
 		assert(conn->get_iapp_protocol() < PT_ProtoTypesNum);
 
@@ -130,10 +130,12 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 			goon = offset < (size_t)nread;
 		}
 	}
-	else
+	else if(nullptr == conn || nread < 0)
 	{
 		tcp_handle.svr._close_connection(*conn);
 	}
+
+	delete buf->base;
 }
 
 void TCPServer::_on_alloc_read_buf(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
