@@ -9,6 +9,7 @@ ipro::protocol_arch::ArchProtocolData::ArchProtocolData()
 	, _parsing_phase(APP_Start)
 	, _content_length(0)
 	, _svc_id(0)
+	, _svc_inst_id(0)
 {}
 
 ipro::protocol_arch::ArchProtocolData::~ArchProtocolData()
@@ -18,6 +19,12 @@ core::IProtocolData::service_id_t
 ipro::protocol_arch::ArchProtocolData::service_id() const noexcept
 {
 	return _svc_id;
+}
+
+core::IProtocolData::service_inst_id_t
+ipro::protocol_arch::ArchProtocolData::service_inst_id() const noexcept
+{
+	return _svc_inst_id;
 }
 
 

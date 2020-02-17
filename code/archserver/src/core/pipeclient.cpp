@@ -9,6 +9,7 @@ core::PipeClient::PipeClient(
 	, _inque(inque)
 	, _outque(outque)
 	, _pipe_handle(*this)
+	, _uvloop({})
 {}
 
 core::PipeClient::~PipeClient()

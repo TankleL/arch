@@ -51,6 +51,7 @@ namespace ipro
 
 		public:
 			virtual service_id_t service_id() const noexcept override;
+			virtual service_inst_id_t service_inst_id() const noexcept override;
 
 		private:
 			std::vector<uint8_t>	_data;
@@ -60,6 +61,7 @@ namespace ipro
 			ArchParsingPhase		_parsing_phase;
 			uint32_t				_content_length;
 			service_id_t			_svc_id;
+			service_inst_id_t		_svc_inst_id;
 		};
 
 	}

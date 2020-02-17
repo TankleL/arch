@@ -1,6 +1,7 @@
 #pragma once
 #include "pre-req.hpp"
 #include "protocol.hpp"
+#include "pipeclient.hpp"
 
 namespace svc
 {
@@ -11,16 +12,14 @@ namespace svc
 		ServiceInstance& operator=(const ServiceInstance& rhs) = delete;
 
 	public:
-		typedef uint16_t service_inst_id_t;
-
-	public:
-		ServiceInstance(const service_inst_id_t& id);
+		ServiceInstance(const core::IProtocolData::service_inst_id_t& id);
 		ServiceInstance(ServiceInstance&& rhs) noexcept;
 		ServiceInstance& operator=(ServiceInstance&& rhs) noexcept;
 		~ServiceInstance() noexcept;
 
 	private:
-		service_inst_id_t	_id;
+		std::unique_ptr<core::PipeClient>		_pipecli;
+		core::IProtocolData::service_inst_id_t	_id;
 	};
 
 }

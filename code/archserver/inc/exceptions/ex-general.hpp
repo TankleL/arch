@@ -25,6 +25,14 @@ protected:
 	uint32_t	_error;
 };
 
+class ArchException_ItemNotFound : public ArchException
+{
+public:
+	ArchException_ItemNotFound() noexcept
+		: ArchException("The item has not found")
+	{}
+};
+
 class ArchException_ItemAlreadyExist : public ArchException
 {
 public:

@@ -31,9 +31,11 @@ namespace core
 	{
 	public:
 		typedef uint32_t service_id_t;
+		typedef uint16_t service_inst_id_t;
 		
 	public:
 		virtual service_id_t service_id() const noexcept = 0;
+		virtual service_inst_id_t service_inst_id() const noexcept = 0;
 	};
 
 

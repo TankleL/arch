@@ -19,7 +19,8 @@ namespace svc
 	public:
 		static void new_instance(
 			core::IProtocolData::service_id_t svc_id,
-			const ServiceInstance::service_inst_id_t& svc_inst_id);
+			const core::IProtocolData::service_inst_id_t& svc_inst_id);
+		static ioqueues_t& get_ioques(const core::IProtocolData::service_inst_id_t& svc_inst_id);
 		static void boot_all_instances();
 		static void dispatch_protocol_data(core::ProtocolQueue::node_t&& node);
 
@@ -29,8 +30,8 @@ namespace svc
 			std::vector<std::unique_ptr<ServiceInstance>>> _svc_insts;
 
 		static std::unordered_map<
-			core::IProtocolData::service_id_t,
-			std::vector<std::unique_ptr<ioqueues_t>>> _svc_ioqueues;
+			core::IProtocolData::service_inst_id_t,
+			std::unique_ptr<ioqueues_t>> _svc_ioqueues;
 	};
 
 }
