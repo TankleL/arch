@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MasterConfig>
+    <Listen>
+        <SockProtocol>TCP</SockProtocol>
+        <IPAddress>0.0.0.0</IPAddress>
+        <Port>8088</Port>
+        <Backlog>128</Backlog>
+    </Listen>
+
+    <Services>
+        <Service>
+            <Name>gamechannel</Name>
+            <Path>${SERVER_ROOT}/services/gamechannel</Path>
+            <WorkingDir>${SERVER_ROOT}/services/gamechannel</WorkingDir>
+            <Assembly>svc_gamechannel</Assembly>
+            <ServiceID>1</ServiceID>
+            <Instances>
+                <Instance>
+                    <InstanceID>1</InstanceID>
+                </Instance>
+            </Instances>
+        </Service>
+    </Services>
+</MasterConfig>

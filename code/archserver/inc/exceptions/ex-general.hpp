@@ -73,3 +73,11 @@ public:
 	{}
 };
 
+class ArchException_LoadConfigFailed : public ArchException
+{
+public:
+	ArchException_LoadConfigFailed() noexcept
+		: ArchException("failed to load config file")
+	{}
+};
+

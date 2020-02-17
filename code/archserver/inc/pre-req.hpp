@@ -17,6 +17,7 @@
 #include <array>
 #include <cassert>
 #include <deque>
+#include <filesystem>
 
 typedef size_t index_t;
 

@@ -31,6 +31,7 @@ include_directories(${TINYXML2_INC})
 
 add_compile_definitions(TEST_PATH_CONFIG_FILE="${TEST_ENV_ROOT_PATH}/archserver/svr_config.xml")
 add_compile_definitions(TEST_PATH_RES_MODULES_ROOT="${TEST_ENV_ROOT_PATH}/modules")
+add_compile_definitions(TEST_GSVR_ENV_PATH="${GSVR_ENV_ROOT}")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
