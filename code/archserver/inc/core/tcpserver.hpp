@@ -13,6 +13,7 @@ namespace core
 	class TCPServer
 	{
 		UNCOPYABLE(TCPServer);
+		UNMOVABLE(TCPServer);
 
 	public:
 		typedef struct _tcp_t : public uv_tcp_t
@@ -36,6 +37,7 @@ namespace core
 		typedef struct _buf_t : public uv_buf_t
 		{
 			UNCOPYABLE(_buf_t);
+			UNMOVABLE(_buf_t);
 
 			_buf_t()
 				: uv_buf_t({})

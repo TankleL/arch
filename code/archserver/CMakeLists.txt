@@ -26,6 +26,10 @@ include_directories(inc/exceptions "inc/exceptions/*.hpp")
 file(GLOB_RECURSE ARCHSVR_EXCEPTIONS_INC_FILES)
 aux_source_directory(src/svc ARCHSVR_EXCEPTIONS_SRC_FILES)
 
+include_directories(inc/osys "inc/osys/*.hpp")
+file(GLOB_RECURSE ARCHSVR_OSYS_INC_FILES)
+aux_source_directory(src/osys ARCHSVR_OSYS_SRC_FILES)
+
 include_directories(${LIBUV_INC})
 include_directories(${TINYXML2_INC})
 
@@ -44,13 +48,15 @@ add_executable(	archsvr
 	${ARCHSVR_IPRO_INC_FILES}
 	${ARCHSVR_SVC_INC_FILES}
 	${ARCHSVR_EXCEPTIONS_INC_FILES}
+	${ARCHSVR_OSYS_INC_FILES}
 #------ source files
 	${ARCHSVR_SRC_FILES}
 	${ARCHSVR_CORE_SRC_FILES}
 	${ARCHSVR_CONFIG_SRC_FILES}
 	${ARCHSVR_IPRO_SRC_FILES}
 	${ARCHSVR_SVC_SRC_FILES}
-	${ARCHSVR_EXCEPTIONS_SRC_FILES})
+	${ARCHSVR_EXCEPTIONS_SRC_FILES}
+	${ARCHSVR_OSYS_SRC_FILES})
 
 target_link_libraries( archsvr uv_a )
 target_link_libraries( archsvr tinyxml2_a )

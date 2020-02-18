@@ -96,12 +96,12 @@ void config::ConfigMgr::_load_master_cfg_service(const void* xelement)
 
 	{
 		const auto& xpath = xsvcs.LastChildElement("Path");
-		service.path = xpath->GetText();
+		_parse_raw_path(service.path, xpath->GetText());
 	}
 	
 	{
 		const auto& xwd = xsvcs.LastChildElement("WorkingDir");
-		service.workingdir = xwd->GetText();
+		_parse_raw_path(service.workingdir, xwd->GetText());
 	}
 
 	{
@@ -146,6 +146,11 @@ void config::ConfigMgr::_load_master_cfg_service_inst(void* insts, const void* x
 	svc_insts.push_back(svc_inst);
 }
 
+void config::ConfigMgr::_parse_raw_path(std::string& res, const std::string& raw)
+{
+	std::regex reg_server_root("\\$\\{SERVER_ROOT\\}");
+	res = std::regex_replace(raw, reg_server_root, MasterConfig::server_root);
+}
 
 
 

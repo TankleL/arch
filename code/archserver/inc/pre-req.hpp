@@ -18,19 +18,24 @@
 #include <cassert>
 #include <deque>
 #include <filesystem>
+#include <regex>
 
 typedef size_t index_t;
 
-#define UNCOPYABLE(name)	\
+#define UNMOVABLE(classname)	\
+			classname(classname&&) = delete;	\
+			classname& operator=(classname&&) = delete
+
+#define UNCOPYABLE(classname)	\
 		private:	\
-			name(const name&) = delete;	\
-			name(name&&) = delete;	\
-			name& operator=(const name&) = delete;	\
-			name& operator=(name&&) = delete
+			classname(const classname&) = delete;	\
+			classname& operator=(const classname&) = delete
 
 #define STATIC_CLASS(classname)	\
 		private:	\
 			classname(){}	\
-			UNCOPYABLE(classname)
+			UNCOPYABLE(classname);	\
+			UNMOVABLE(classname)
+
 
 

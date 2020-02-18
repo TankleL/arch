@@ -3,8 +3,8 @@
 using namespace core;
 
 core::PipeClient::PipeClient(
-			ProtocolQueue& inque,
-			ProtocolQueue& outque)
+			const std::shared_ptr<ProtocolQueue>& inque,
+			const std::shared_ptr<ProtocolQueue>& outque)
 	: _thread(std::bind(&PipeClient::_workthread, this))
 	, _inque(inque)
 	, _outque(outque)

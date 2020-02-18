@@ -45,7 +45,8 @@ namespace config
 		} service_t;
 
 
-		static listen_t			listen;
+		static std::string				server_root;
+		static listen_t					listen;
 		static std::vector<service_t>	services;
 
 	};

@@ -1,5 +1,8 @@
 #include "config-master.hpp"
 
+std::string
+config::MasterConfig::server_root;
+
 config::MasterConfig::listen_t
 config::MasterConfig::listen;
 

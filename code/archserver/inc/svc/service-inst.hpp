@@ -2,17 +2,23 @@
 #include "pre-req.hpp"
 #include "protocol.hpp"
 #include "pipeclient.hpp"
+#include "process.hpp"
 
 namespace svc
 {
 
+	class Service;
 	class ServiceInstance
 	{
 		ServiceInstance(const ServiceInstance& rhs) = delete;
 		ServiceInstance& operator=(const ServiceInstance& rhs) = delete;
 
 	public:
-		ServiceInstance(const core::IProtocolData::service_inst_id_t& id);
+		ServiceInstance(
+			const Service& service,
+			const core::IProtocolData::service_inst_id_t& id,
+			const std::shared_ptr<core::ProtocolQueue>& inque,
+			const std::shared_ptr<core::ProtocolQueue>& outque);
 		ServiceInstance(ServiceInstance&& rhs) noexcept;
 		ServiceInstance& operator=(ServiceInstance&& rhs) noexcept;
 		~ServiceInstance() noexcept;
@@ -20,6 +26,7 @@ namespace svc
 	private:
 		std::unique_ptr<core::PipeClient>		_pipecli;
 		core::IProtocolData::service_inst_id_t	_id;
+		osys::process_handle_t					_process;
 	};
 
 }

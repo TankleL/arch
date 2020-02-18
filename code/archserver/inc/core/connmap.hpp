@@ -11,6 +11,7 @@ namespace core
 	class ConnMap
 	{
 		UNCOPYABLE(ConnMap);
+		UNMOVABLE(ConnMap);
 
 	public:
 		typedef Connection<StreamT>	conn_t;

@@ -44,6 +44,7 @@ namespace ipro
 		class ArchProtocolData : public core::IProtocolData
 		{
 			UNCOPYABLE(ArchProtocolData);
+			UNMOVABLE(ArchProtocolData);
 			friend ArchProtocol;
 		public:
 			ArchProtocolData();
