@@ -6,6 +6,10 @@ include_directories(inc)
 file(GLOB_RECURSE ARCHSVR_INC_FILES "inc/*.hpp")
 aux_source_directory (src ARCHSVR_SRC_FILES)
 
+include_directories(inc/data)
+file(GLOB_RECURSE ARCHSVR_DATA_INC_FILES "inc/data/*.hpp")
+aux_source_directory(src/data ARCHSVR_DATA_SRC_FILES)
+
 include_directories(inc/core)
 file(GLOB_RECURSE ARCHSVR_CORE_INC_FILES "inc/core/*.hpp")
 aux_source_directory(src/core ARCHSVR_CORE_SRC_FILES)
@@ -43,6 +47,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(	archsvr
 #------ header files
 	${ARCHSVR_INC_FILES}
+	${ARCHSVR_DATA_INC_FILES}
 	${ARCHSVR_CORE_INC_FILES}
 	${ARCHSVR_CONFIG_INC_FILES}
 	${ARCHSVR_IPRO_INC_FILES}
@@ -51,6 +56,7 @@ add_executable(	archsvr
 	${ARCHSVR_OSYS_INC_FILES}
 #------ source files
 	${ARCHSVR_SRC_FILES}
+	${ARCHSVR_DATA_SRC_FILES}
 	${ARCHSVR_CORE_SRC_FILES}
 	${ARCHSVR_CONFIG_SRC_FILES}
 	${ARCHSVR_IPRO_SRC_FILES}
