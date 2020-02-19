@@ -14,6 +14,7 @@ svc::Service::Service(
 	, _path(path)
 	, _workingdir(workingdir)
 	, _assembly(assembly)
+	, _top_inst_id_idx(0)
 {}
 
 svc::Service::Service(Service&& rhs) noexcept
@@ -23,6 +24,8 @@ svc::Service::Service(Service&& rhs) noexcept
 	, _workingdir(std::move(rhs._workingdir))
 	, _assembly(std::move(rhs._assembly))
 	, _insts(std::move(rhs._insts))
+	, _inst_ids(std::move(rhs._inst_ids))
+	, _top_inst_id_idx(rhs._top_inst_id_idx)
 {}
 
 svc::Service& 
@@ -34,6 +37,8 @@ svc::Service::operator=(Service&& rhs) noexcept
 	_workingdir = std::move(rhs._workingdir);
 	_assembly = std::move(rhs._assembly);
 	_insts = std::move(rhs._insts);
+	_inst_ids = std::move(rhs._inst_ids);
+	_top_inst_id_idx = rhs._top_inst_id_idx;
 
 	return *this;
 }
@@ -62,11 +67,29 @@ void svc::Service::new_instance(
 					inque,
 					outque)
 		});
+		_inst_ids.push_back(id);
 	}
 	else
 	{
 		throw ArchException_ItemAlreadyExist();
 	}
+}
+
+ServiceInstance* svc::Service::get_instance(
+	const core::IProtocolData::service_inst_id_t& id) const
+{
+	// no need to check whether the instance exists or not.
+	// if not, just let server go down because there must be
+	// some big problems with configuration.
+	const auto& inst = _insts.find(id);
+	return inst->second.get();
+}
+
+ServiceInstance* svc::Service::get_instance_random()
+{
+	return _insts[
+		(core::IProtocolData::service_inst_id_t)
+			(_top_inst_id_idx++ % _inst_ids.size())].get();
 }
 
 

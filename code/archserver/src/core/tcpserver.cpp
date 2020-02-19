@@ -111,7 +111,11 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 				if (!phdl->proc_check_switch(prot_switchto, *data))
 				{
 					ProtocolQueue::node_t node(data, conn->get_id());
-					svc::ServiceMgr::dispatch_protocol_data(std::move(node));
+					if(!svc::ServiceMgr::dispatch_protocol_data(std::move(node)))
+					{
+						goon = false;
+						tcp_handle.svr._close_connection(*conn);
+					}
 				}
 				else
 				{
@@ -127,7 +131,7 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 				break;
 			}
 
-			goon = offset < (size_t)nread;
+			goon = goon && (offset < (size_t)nread);
 		}
 	}
 	else if(nullptr == conn || nread < 0)

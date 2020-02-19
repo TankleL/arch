@@ -23,6 +23,9 @@ namespace svc
 		ServiceInstance& operator=(ServiceInstance&& rhs) noexcept;
 		~ServiceInstance() noexcept;
 
+	public:
+		void write_pipe(core::ProtocolQueue::node_t&& node);
+
 	private:
 		std::unique_ptr<core::PipeClient>		_pipecli;
 		core::IProtocolData::service_inst_id_t	_id;

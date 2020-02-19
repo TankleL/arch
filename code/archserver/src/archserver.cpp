@@ -10,6 +10,7 @@ using namespace config;
 
 void signal_int(int sig)
 {
+	int c = 0;
 }
 
 int main(int argc, char** argv)
@@ -23,7 +24,7 @@ int main(int argc, char** argv)
 #endif
 
 	ConfigMgr::load_configs(svr_root + "/config");
-	signal(SIGINT, signal_int);
+	//signal(SIGINT, signal_int);
 
 
 	for (const auto& svc : MasterConfig::services)

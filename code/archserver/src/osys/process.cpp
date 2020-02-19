@@ -18,12 +18,14 @@ process_handle_t osys::create_process(
 
 	std::string fullappname = appname + ".exe";
 
-	char commandline[32768] = { 0 };
-	memcpy(commandline, cmdline.data(), cmdline.length());
+	std::unique_ptr<char> commandline =
+		std::make_unique<char>(cmdline.length() + 1);
+	memset(commandline.get(), 0, cmdline.length() + 1);
+	memcpy(commandline.get(), cmdline.data(), cmdline.length());
 
 	if (::CreateProcessA(
 			fullappname.c_str(),
-			commandline,
+			commandline.get(),
 			NULL,
 			NULL,
 			false,
@@ -33,6 +35,7 @@ process_handle_t osys::create_process(
 			&startup_info,
 			&process_info))
 	{
+		::CloseHandle(process_info.hThread);
 		return process_info.hProcess;
 	}
 	else

@@ -10,6 +10,10 @@ namespace core
 	public:
 		typedef struct _node
 		{
+			_node() noexcept
+				: conn_id(0)
+			{}
+
 			_node(
 				const std::weak_ptr<IProtocolData>& protocol_data,
 				uint16_t connection_id)

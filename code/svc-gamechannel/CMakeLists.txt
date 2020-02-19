@@ -25,4 +25,15 @@ target_link_libraries(svc_gamechannel
     archsvc_a
 )
 
+#post build
+if(WIN32)
+	set(SVC_GAMECHANNEL_BUILD_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/buildtools/post-build-cmd-win32.bat ${PROJECT_BINARY_DIR} ${GSVR_ENV_ROOT})
+else()
+	set(SVC_GAMECHANNEL_BUILD_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/buildtools/post-build-cmd-linux.sh)
+endif()
+
+message("post build commands: " ${SVC_GAMECHANNEL_BUILD_COMMAND})
+add_custom_command(TARGET svc_gamechannel POST_BUILD
+	COMMAND ${SVC_GAMECHANNEL_BUILD_COMMAND})
+
 message("leave-level < svc-gamechannel")

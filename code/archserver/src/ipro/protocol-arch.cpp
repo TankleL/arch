@@ -27,6 +27,23 @@ ipro::protocol_arch::ArchProtocolData::service_inst_id() const noexcept
 	return _svc_inst_id;
 }
 
+void
+ipro::protocol_arch::ArchProtocolData::set_service_inst_id(service_inst_id_t id) noexcept
+{
+	_svc_inst_id = id;
+}
+
+core::IProtocolData::length_t
+ipro::protocol_arch::ArchProtocolData::length() const noexcept
+{
+	return (length_t)_data.size();
+}
+
+const std::uint8_t*
+ipro::protocol_arch::ArchProtocolData::data() const noexcept
+{
+	return _data.data();
+}
 
 
 core::ProtocolType

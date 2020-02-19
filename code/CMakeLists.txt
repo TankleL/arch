@@ -4,12 +4,13 @@ message("enter-level > top level")
 
 project( arch )
 
-set(ARCHSVR_INC			${CMAKE_CURRENT_SOURCE_DIR}/archserver/inc)
 set(LIBUV_INC           ${CMAKE_CURRENT_SOURCE_DIR}/deps/libuv/include)
 set(TINYXML2_INC        ${CMAKE_CURRENT_SOURCE_DIR}/deps/tinyxml2/inc)
+set(GETOPT_INC          ${CMAKE_CURRENT_SOURCE_DIR}/deps/getopt/inc)
 set(ARCHSVC_INC         ${CMAKE_CURRENT_SOURCE_DIR}/archservice/inc)
 set(GSVR_ENV_ROOT       ${CMAKE_CURRENT_BINARY_DIR}/../../gsvr)
 
+add_subdirectory( deps/getopt )
 add_subdirectory( deps/libuv )
 add_subdirectory( deps/tinyxml2 )
 add_subdirectory( archserver )

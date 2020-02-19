@@ -14,9 +14,35 @@ std::unordered_map<
 	std::unique_ptr<ServiceMgr::ioqueues_t>> ServiceMgr::_svc_ioqueues;
 
 
-void svc::ServiceMgr::dispatch_protocol_data(
+bool svc::ServiceMgr::dispatch_protocol_data(
 	core::ProtocolQueue::node_t&& node)
-{}
+{
+	bool result = true;
+	auto protodata = node.data.lock();
+	if (protodata)
+	{
+		auto svc_id = protodata->service_id();
+		auto inst_id = protodata->service_inst_id();
+
+		const auto& svc = _svcs.find(svc_id);
+		if (svc != _svcs.cend())
+		{
+			if (inst_id != 0)
+			{
+				svc->second->get_instance(inst_id)->write_pipe(std::move(node));
+			}
+			else
+			{  // assign an instance randomly for the request
+				svc->second->get_instance_random()->write_pipe(std::move(node));
+			}
+		}
+	}
+	else
+	{
+		result = false;
+	}
+	return result;
+}
 
 svc::ServiceMgr::ioqueues_t&
 svc::ServiceMgr::get_ioques(

@@ -32,7 +32,8 @@ namespace svc
 		static ioqueues_t& get_ioques(
 			const core::IProtocolData::service_id_t& svc_id,
 			const core::IProtocolData::service_inst_id_t& svc_inst_id);
-		static void dispatch_protocol_data(core::ProtocolQueue::node_t&& node);
+
+		static bool dispatch_protocol_data(core::ProtocolQueue::node_t&& node);
 
 	private:
 		static std::size_t _ioqueue_id(

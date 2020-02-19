@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(${LIBUV_INC})
+include_directories(${GETPOT_INC})
 
 include_directories(inc)
 file(GLOB_RECURSE ARCHSVC_INC_FILES "inc/*.hpp")
@@ -18,7 +19,10 @@ add_library(archsvc_a STATIC
     ${ARCHSVC_SRC_FILES}
 )
 
-target_link_libraries(archsvc_a uv_a)
+target_link_libraries(archsvc_a
+    uv_a
+    getopt_a
+)
 
 
 message("leave-level < archservice")

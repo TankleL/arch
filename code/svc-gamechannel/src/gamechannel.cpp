@@ -5,15 +5,10 @@ using namespace archsvc;
 
 int main(int argc, char** argv)
 {
-
-	system("pause");
-
-	system("pause");
-
-	if (argc < 2)
+	if (argc < 1)
 		return -1;
 
-	const char* pipename = argv[1];
+	const char* pipename = argv[0];
 	PipeServer svc_server(pipename);
 
 

@@ -11,10 +11,10 @@ namespace ipro
 		/*                        Arch Message Header                     */
 		/*                                                                */
 		/*     # V0.1                                                     */
-		/*         - [HEADER] Version -> 1 byte                           */
-		/*         - [HEADER] Extension                                   */
-		/*         -       * [EXT] length -> 2 bytes                      */
-		/*         - [CONTENT] Data -> length byte(s)                     */
+		/*         - [HEADER] Version      -> 1 byte                      */
+		/*         - [HEADER] length       -> 2 bytes			          */
+		/*         - [HEADER] svc_inst_id  -> 2 bytes                     */
+		/*         - [CONTENT] Data        -> length byte(s)              */
 		/*                                                                */
 		/******************************************************************/
 
@@ -28,7 +28,8 @@ namespace ipro
 		{
 			APP_Start = 0,
 			APP_Parsing_Header_Version,
-			APP_Parsing_Header_Extension,
+			APP_Parsing_Header_Length,
+			APP_Parsing_Header_SVCINSTID,
 			APP_Parsing_Content
 		};
 
@@ -53,6 +54,9 @@ namespace ipro
 		public:
 			virtual service_id_t service_id() const noexcept override;
 			virtual service_inst_id_t service_inst_id() const noexcept override;
+			virtual void set_service_inst_id(service_inst_id_t id) noexcept override;
+			virtual length_t length() const noexcept override;
+			virtual const uint8_t* data() const noexcept override;
 
 		private:
 			std::vector<uint8_t>	_data;

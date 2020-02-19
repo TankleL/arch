@@ -32,10 +32,14 @@ namespace core
 	public:
 		typedef uint32_t service_id_t;
 		typedef uint16_t service_inst_id_t;
+		typedef uint16_t length_t;
 		
 	public:
 		virtual service_id_t service_id() const noexcept = 0;
 		virtual service_inst_id_t service_inst_id() const noexcept = 0;
+		virtual void set_service_inst_id(service_inst_id_t id) noexcept = 0;
+		virtual length_t length() const noexcept = 0;
+		virtual const std::uint8_t* data() const noexcept = 0;
 	};
 
 
