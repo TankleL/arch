@@ -19,7 +19,7 @@ process_handle_t osys::create_process(
 	std::string fullappname = appname + ".exe";
 
 	std::unique_ptr<char> commandline =
-		std::make_unique<char>(cmdline.length() + 1);
+		std::make_unique<char>((int)cmdline.length() + 1);
 	memset(commandline.get(), 0, cmdline.length() + 1);
 	memcpy(commandline.get(), cmdline.data(), cmdline.length());
 
