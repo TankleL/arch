@@ -4,12 +4,8 @@ using namespace core;
 
 ipro::protocol_arch::ArchProtocolData::ArchProtocolData()
 	: _version(APV_Unknown)
-	, _header_ext_cache({ 0 })
-	, _header_ext_cache_idx(0)
 	, _parsing_phase(APP_Start)
 	, _content_length(0)
-	, _svc_id(0)
-	, _svc_inst_id(0)
 {}
 
 ipro::protocol_arch::ArchProtocolData::~ArchProtocolData()
@@ -18,19 +14,19 @@ ipro::protocol_arch::ArchProtocolData::~ArchProtocolData()
 core::IProtocolData::service_id_t
 ipro::protocol_arch::ArchProtocolData::service_id() const noexcept
 {
-	return _svc_id;
+	return _svc_id.value();
 }
 
 core::IProtocolData::service_inst_id_t
 ipro::protocol_arch::ArchProtocolData::service_inst_id() const noexcept
 {
-	return _svc_inst_id;
+	return _svc_inst_id.value();
 }
 
 void
 ipro::protocol_arch::ArchProtocolData::set_service_inst_id(service_inst_id_t id) noexcept
 {
-	_svc_inst_id = id;
+	_svc_inst_id.value(id);
 }
 
 core::IProtocolData::length_t
@@ -59,67 +55,84 @@ ipro::protocol_arch::ArchProtocol::proc_istrm(
 	procbytes = 0;
 	ArchProtocolData& obj = static_cast<ArchProtocolData&>(dest);
 
-	switch (obj._parsing_phase)
+	bool goon = true;
+	VUInt::DigestStatus digst;
+	while ((toreadlen - procbytes > 0) && goon)
 	{
-	case APP_Start:
-		obj._parsing_phase = APP_Parsing_Header_Version;
-		// continue to the next phase, no BREAK here!
-
-	case APP_Parsing_Header_Version:
-		assert(procbytes == 0);
-		obj._version = readbuf[procbytes]; ++procbytes;
-		obj._parsing_phase = APP_Parsing_Header_Extension;
-		// continue to the next phase, no BREAK here!
-		
-	case APP_Parsing_Header_Extension:
-		if (obj._version == APV_0_1)
-		{ // APV v0.1
-_GOTO_LAB_PROC_HEADER_EXT_V0_1:	// Ugly but simple way.
-			if (procbytes < toreadlen)
-			{
-				switch (obj._header_ext_cache_idx)
-				{
-				case 0:
-					obj._header_ext_cache[0] = readbuf[procbytes];
-					++procbytes;
-					++obj._header_ext_cache_idx;
-					goto _GOTO_LAB_PROC_HEADER_EXT_V0_1;
-
-				case 1:
-					obj._header_ext_cache[1] = readbuf[procbytes];
-					++procbytes;
-					++obj._header_ext_cache_idx;
-
-					obj._parsing_phase = APP_Parsing_Content;
-					obj._content_length =
-						obj._header_ext_cache[1] << 8 |
-						obj._header_ext_cache[0];
-					goto _GOTO_LAB_PROC_CONTENT;
-
-				default:
-					assert(false);
-				}
-			}
-		}
-		else
-		{ // unknown arch protocol version
-			return PPR_ERROR;
-		}
-		break;
-
-	case APP_Parsing_Content:
-_GOTO_LAB_PROC_CONTENT:
+		switch (obj._parsing_phase)
 		{
-			uint32_t canread = obj._content_length - (uint32_t)obj._data.size();
+		case APP_Start:
+			obj._parsing_phase = APP_Parsing_Header_Version;
+			// continue to the next phase, no BREAK here!
+
+		case APP_Parsing_Header_Version:
+			digst = obj._version.digest(readbuf[procbytes++]);
+			if (VUInt::DS_Idle == digst)
+			{
+				if (obj._version.value() != APV_0_1)
+				{ // unsupported protocol version
+					return PPR_ERROR;
+				}
+				obj._parsing_phase = APP_Parsing_Header_SVC_ID;
+			}
+			else if (VUInt::DS_Bad == digst)
+			{
+				return PPR_ERROR;
+			}
+
+			break;
+
+		case APP_Parsing_Header_SVC_ID:
+			digst = obj._svc_id.digest(readbuf[procbytes++]);
+			if (VUInt::DS_Idle == digst)
+			{
+				obj._parsing_phase = APP_Parsing_Header_SVC_INST_ID;
+			}
+			else if (VUInt::DS_Bad == digst)
+			{
+				return PPR_ERROR;
+			}
+			break;
+
+		case APP_Parsing_Header_SVC_INST_ID:
+			digst = obj._svc_inst_id.digest(readbuf[procbytes++]);
+			if (VUInt::DS_Idle == digst)
+			{
+				obj._parsing_phase = APP_Parsing_Header_Length;
+			}
+			else if (VUInt::DS_Bad == digst)
+			{
+				return PPR_ERROR;
+			}
+			break;
+
+		case APP_Parsing_Header_Length:
+			digst = obj._content_length.digest(readbuf[procbytes++]);
+			if (VUInt::DS_Idle == digst)
+			{
+				if (obj._content_length.value() > 65536)
+				{ // max content leng is 65536 bytes
+					return PPR_ERROR;
+				}
+				obj._parsing_phase = APP_Parsing_Content;
+			}
+			else if (VUInt::DS_Bad == digst)
+			{
+				return PPR_ERROR;
+			}
+			break;
+
+		case APP_Parsing_Content:
+		{
+			uint32_t canread = obj._content_length.value() - (uint32_t)obj._data.size();
 			if (canread > 0)
 			{
 				canread = (toreadlen - procbytes) < canread ? (uint32_t)(toreadlen - procbytes) : canread;
 				obj._data.insert(obj._data.end(), readbuf + procbytes, readbuf + procbytes + canread);
 				procbytes += canread;
 
-				if (obj._data.size() == obj._content_length)
+				if ((uint32_t)obj._data.size() == obj._content_length.value())
 				{
-
 					return PPR_PULSE;
 				}
 			}
@@ -128,7 +141,8 @@ _GOTO_LAB_PROC_CONTENT:
 				PPR_ERROR;
 			}
 		}
-		break;
+			break;
+		}
 	}
 
 	return PPR_AGAIN;
@@ -136,28 +150,41 @@ _GOTO_LAB_PROC_CONTENT:
 
 
 bool
-ipro::protocol_arch::ArchProtocol::proc_ostrm(std::string& obuffer, const IProtocolData& src)
+ipro::protocol_arch::ArchProtocol::proc_ostrm(std::vector<uint8_t>& obuffer, const IProtocolData& src)
 {
+	bool result = true;
 	const ArchProtocolData& obj = static_cast<const ArchProtocolData&>(src);
 
-	if (obj._version == APV_0_1)
+	if (obj._content_length.value() == (uint32_t)obj._data.size())   // data validation
 	{
-		// pack version
-		obuffer.push_back((uint8_t)obj._version);
+		if (obj._version.value() == APV_0_1) // check proto version
+		{
+			// pack version
+			obuffer << obj._version;
 
-		// pack content length
-		uint16_t content_length = (uint16_t)obj._data.size();
-		obuffer.push_back(content_length & 0xff);
-		obuffer.push_back((content_length & 0xff00) >> 8);
+			// pack svc id
+			obuffer << obj._svc_id;
 
-		// pack content
-		obuffer.insert(obuffer.end(), obj._data.begin(), obj._data.end());
-		return true;
+			// pack svc inst id
+			obuffer << obj._svc_inst_id;
+
+			// pack content length
+			obuffer << obj._content_length;
+
+			// pack content
+			obuffer.insert(obuffer.end(), obj._data.begin(), obj._data.end());
+		}
+		else
+		{
+			result = false;
+		}
 	}
 	else
 	{
-		return false;
+		result = false;
 	}
+
+	return result;
 }
 
 bool

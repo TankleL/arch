@@ -12,6 +12,6 @@ set gsvr_root=%gsvr_root:/=\%
 echo game server root: %gsvr_root%
 
 rem : copy this service to game server root
-xcopy /D /Y %proj_bin_dir%\svc-gamechannel\Debug\svc_gamechannel.exe  %gsvr_root%\services\gamechannel\svc_gamechannel.exe
+xcopy /D /Y %proj_bin_dir%\svc-gamechannel\Debug\svc_gamechannel.exe  %gsvr_root%\services\gamechannel\svc_gamechannel.exe*
 
 

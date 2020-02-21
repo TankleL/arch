@@ -10,7 +10,6 @@ ServiceInstance::ServiceInstance(
 	const std::shared_ptr<core::ProtocolQueue>& inque,
 	const std::shared_ptr<core::ProtocolQueue>& outque)
 	: _id(id)
-	, _process(0)
 {
 	std::ostringstream appname;
 	appname << service._path << "/" << service._assembly;

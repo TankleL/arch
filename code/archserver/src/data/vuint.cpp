@@ -7,9 +7,16 @@ VUInt::VUInt() noexcept
 	, _dsize(0)
 	, _digst(DS_Idle)
 	, _value(0)
-{}
+{
+	value(0);
+}
 
 VUInt::VUInt(std::uint32_t val) noexcept
+	: _data({0})
+	, _esize(0)
+	, _dsize(0)
+	, _digst(DS_Idle)
+	, _value(0)
 {
 	value(val);
 }
@@ -17,31 +24,20 @@ VUInt::VUInt(std::uint32_t val) noexcept
 VUInt::~VUInt()
 {}
 
-std::uint8_t VUInt::uint8() const noexcept
-{
-	assert(_dsize == 1);
-	return (std::uint8_t)_value;
-}
-
-std::uint16_t VUInt::uint16() const noexcept
-{
-	assert(_dsize <= 2);
-	return (std::uint16_t)_value;
-}
-
-std::uint32_t VUInt::uint32() const noexcept
-{
-	assert(_dsize <= 4);
-	return _value;
-}
-
 std::uint32_t VUInt::value() const noexcept
 {
 	return _value;
 }
 
+int VUInt::decoded_size() const noexcept
+{
+	return _dsize;
+}
+
 void VUInt::value(std::uint32_t val) noexcept
 {
+	memset(_data.data(), 0, _data.size());
+
 	if (val < 0x80)  // 0 ~ 7 bits
 	{
 		// [byte 0] 0xxx xxxx
@@ -111,6 +107,8 @@ VUInt::DigestStatus VUInt::digest(const std::uint8_t& byte) noexcept
 	switch (_digst)
 	{
 	case DS_Idle:
+		memset(_data.data(), 0, _data.size());
+
 		if ((byte & 0x80) == 0) // 0 ~ 7 bits
 		{
 			_value = byte & 0x7f;
@@ -249,6 +247,15 @@ const std::uint8_t* VUInt::encoded_data() const noexcept
 	return _data.data();
 }
 
+std::vector<uint8_t>&
+operator<<(std::vector<uint8_t>& dest, const VUInt& vuint)
+{
+	dest.insert(
+		dest.end(),
+		vuint.encoded_data(),
+		vuint.encoded_data() + vuint.encoded_size());
+	return dest;
+}
 
 
 

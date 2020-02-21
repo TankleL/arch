@@ -1,5 +1,7 @@
 #pragma once
 #include "protocol.hpp"
+#include "vint.hpp"
+#include "vuint.hpp"
 
 namespace ipro
 {
@@ -8,17 +10,18 @@ namespace ipro
 	{
 
 		/******************************************************************/
-		/*                        Arch Message Header                     */
+		/*                    ARCH PROTO MESSAGE PACK                     */
 		/*                                                                */
 		/*     # V0.1                                                     */
-		/*         - [HEADER] Version      -> 1 byte                      */
-		/*         - [HEADER] length       -> 2 bytes			          */
-		/*         - [HEADER] svc_inst_id  -> 2 bytes                     */
+		/*         - [HEADER] Version      -> VUInt                       */
+		/*         - [HEADER] svc_id       -> VUInt                       */
+		/*         - [HEADER] svc_inst_id  -> VUInt                       */
+		/*         - [HEADER] length       -> VUInt 			          */
 		/*         - [CONTENT] Data        -> length byte(s)              */
 		/*                                                                */
 		/******************************************************************/
 
-		enum ArchProtocolVersion : int
+		enum ArchProtocolVersion : uint32_t
 		{
 			APV_Unknown,
 			APV_0_1		// arch protocol 0.1
@@ -28,8 +31,9 @@ namespace ipro
 		{
 			APP_Start = 0,
 			APP_Parsing_Header_Version,
+			APP_Parsing_Header_SVC_ID,
+			APP_Parsing_Header_SVC_INST_ID,
 			APP_Parsing_Header_Length,
-			APP_Parsing_Header_SVCINSTID,
 			APP_Parsing_Content
 		};
 
@@ -38,7 +42,7 @@ namespace ipro
 		public:
 			virtual core::ProtocolType	get_protocol_type() const noexcept override;
 			virtual ProtoProcRet	proc_istrm(core::IProtocolData& dest, std::uint8_t* readbuf, size_t toreadlen, size_t& procbytes) override;
-			virtual bool			proc_ostrm(std::string& obuffer, const core::IProtocolData& src) override;
+			virtual bool			proc_ostrm(std::vector<uint8_t>& obuffer, const core::IProtocolData& src) override;
 			virtual bool			proc_check_switch(core::ProtocolType& dest_proto, const core::IProtocolData& obj) override;
 		};
 
@@ -60,13 +64,12 @@ namespace ipro
 
 		private:
 			std::vector<uint8_t>	_data;
-			uint32_t				_version;
-			std::array<uint8_t, 4>	_header_ext_cache;
-			uint32_t				_header_ext_cache_idx;
+			VUInt					_version;
+			VUInt					_svc_id;
+			VUInt					_svc_inst_id;
+			VUInt					_content_length;
+
 			ArchParsingPhase		_parsing_phase;
-			uint32_t				_content_length;
-			service_id_t			_svc_id;
-			service_inst_id_t		_svc_inst_id;
 		};
 
 	}

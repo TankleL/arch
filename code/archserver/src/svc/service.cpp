@@ -88,8 +88,9 @@ ServiceInstance* svc::Service::get_instance(
 ServiceInstance* svc::Service::get_instance_random()
 {
 	return _insts[
-		(core::IProtocolData::service_inst_id_t)
-			(_top_inst_id_idx++ % _inst_ids.size())].get();
+		_inst_ids[
+			(core::IProtocolData::service_inst_id_t)
+				(_top_inst_id_idx++ % _inst_ids.size())]].get();
 }
 
 

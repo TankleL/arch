@@ -1,10 +1,12 @@
 #pragma once
 #include <cstdint>
 #include <array>
+#include <vector>
 
 
 class VUInt
 {
+public:
 	enum DigestStatus : int
 	{
 		DS_Idle = 0,
@@ -21,10 +23,8 @@ public:
 	~VUInt() noexcept;
 
 public:
-	std::uint8_t	uint8() const noexcept;
-	std::uint16_t	uint16() const noexcept;
-	std::uint32_t	uint32() const noexcept;
 	std::uint32_t	value() const noexcept;
+	int				decoded_size() const noexcept;
 	
 	void value(std::uint32_t val) noexcept;
 
@@ -40,6 +40,6 @@ private:
 	std::uint32_t				_value;
 };
 
-
+std::vector<uint8_t>& operator<<(std::vector<uint8_t>& dest, const VUInt& vuint);
 
 

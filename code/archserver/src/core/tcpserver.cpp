@@ -97,7 +97,7 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 			IProtocolHandler::ProtoProcRet proc_ret = phdl->proc_istrm(
 				*data,
 				(uint8_t*)(buf->base + offset),
-				nread,
+				nread - offset,
 				procbytes);
 			offset += procbytes;
 			switch (proc_ret)
