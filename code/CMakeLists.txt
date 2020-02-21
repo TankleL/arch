@@ -15,6 +15,7 @@ add_subdirectory( deps/libuv )
 add_subdirectory( deps/tinyxml2 )
 add_subdirectory( archserver )
 add_subdirectory( archservice )
+add_subdirectory( svc-echo)
 add_subdirectory( svc-gamechannel )
 
 message("leave-level < top level")

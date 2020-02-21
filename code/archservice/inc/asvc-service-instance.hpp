@@ -1,6 +1,7 @@
 #pragma once
 
 #include "asvc-pipeserver.hpp"
+#include <memory>
 
 namespace archsvc
 {
@@ -12,10 +13,14 @@ namespace archsvc
 
 	public:
 		ServiceInstance(const id_t& id);
+		~ServiceInstance();
+		
+	public:
+		void run();
 
 	private:
-		PipeServer			_pipesvr;
-		id_t				_id;
+		std::unique_ptr<PipeServer>	_pipesvr;
+		id_t						_id;
 	};
 
 }

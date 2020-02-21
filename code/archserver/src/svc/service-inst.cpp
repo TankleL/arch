@@ -14,7 +14,7 @@ ServiceInstance::ServiceInstance(
 	std::ostringstream appname;
 	appname << service._path << "/" << service._assembly;
 	std::ostringstream oss_cmdline;
-	oss_cmdline << "-p" << id;
+	oss_cmdline << "-i" << id;
 	_process = osys::create_process(
 		appname.str(),
 		oss_cmdline.str(),
