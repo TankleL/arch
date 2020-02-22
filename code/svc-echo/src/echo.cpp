@@ -16,6 +16,7 @@ int main(int argc, char** argv)
 {
 	ServiceInstance::id_t svc_inst_id;
 
+	//system("pause");
 	int opt;
 	std::stringstream ioss;
 	while ((opt = getopt(argc, argv, "i:")) != -1)

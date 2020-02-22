@@ -28,6 +28,7 @@ namespace svc
 
 	private:
 		void _pipe_outque_guard(core::ProtocolQueue::node_t& node);
+		std::string _pipename() const;
 
 	private:
 		std::unique_ptr<core::PipeClient>		_pipecli;

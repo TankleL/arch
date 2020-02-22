@@ -15,7 +15,7 @@ ServiceInstance::ServiceInstance(
 	std::ostringstream appname;
 	appname << service._path << "/" << service._assembly;
 	std::ostringstream oss_cmdline;
-	oss_cmdline << "-i" << id;
+	oss_cmdline << "-i" << _pipename();
 
 	if (osys::create_process(
 		appname.str(),
@@ -23,7 +23,7 @@ ServiceInstance::ServiceInstance(
 		service._workingdir))
 	{
 		std::ostringstream oss_pipename;
-		oss_pipename << "asvc_data_pipe_" << id;
+		oss_pipename << "asvc_data_pipe_" << _pipename();
 		_pipecli = std::make_unique<PipeClient>(
 			oss_pipename.str(),
 			inque,
@@ -67,6 +67,20 @@ void ServiceInstance::_pipe_outque_guard(core::ProtocolQueue::node_t& node)
 	pdata.svc_inst_id = _id;
 }
 
+std::string ServiceInstance::_pipename() const
+{
+	std::string r1, r2;
+
+	std::stringstream ss1;
+	ss1 << _svc_id;
+	ss1 >> r1;
+
+	std::stringstream ss2;
+	ss2 << _id;
+	ss2 >> r2;
+
+	return r1 + r2;
+}
 
 
 

@@ -27,6 +27,7 @@ core::PipeClient::~PipeClient()
 
 void core::PipeClient::_workthread()
 {
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	uv_loop_init(&_uvloop);
 	uv_pipe_init(&_uvloop, (uv_pipe_t*)& _pipe_handle, 1);
 
