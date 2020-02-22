@@ -5,6 +5,13 @@
 
 using namespace archsvc;
 
+bool on_receive(
+	std::vector<uint8_t>&& data,
+	PipeServer& pipe)
+{
+	return true;
+}
+
 int main(int argc, char** argv)
 {
 	ServiceInstance::id_t svc_inst_id;
@@ -29,7 +36,9 @@ int main(int argc, char** argv)
 		}
 	}
 
-	ServiceInstance inst(svc_inst_id);
+	ServiceInstance inst(
+		svc_inst_id,
+		on_receive);
 	inst.run();
 
     return 0;

@@ -15,6 +15,7 @@ TCPServer::TCPServer(
 	, _backlog(backlog)
 	, _uvloop({})
 	, _tcp_handle(*this, 0, {})
+	, _tm_write(*this)
 	, _thread(std::bind(&TCPServer::_work_thread, this))
 	, _quit(false)
 	, _proto_handlers{
@@ -37,10 +38,12 @@ void TCPServer::_work_thread()
 	uv_loop_init(&_uvloop);
 
 	uv_tcp_init(&_uvloop, (uv_tcp_t*)&_tcp_handle);
+	uv_timer_init(&_uvloop, &_tm_write);
 	sockaddr_in addr;
 	uv_ip4_addr(_ipaddr.c_str(), _port, &addr);
 	uv_tcp_bind((uv_tcp_t*)&_tcp_handle, (const sockaddr*)& addr, 0);
 	uv_listen((uv_stream_t*)& _tcp_handle, _backlog, _on_connect);
+	uv_timer_start(&_tm_write, _on_write_timer, 1, 0);
 
 	uv_run(&_uvloop, UV_RUN_DEFAULT);
 }
@@ -70,7 +73,7 @@ void TCPServer::_on_connect(
 		}
 		else
 		{
-			tcp_handle.svr._close_connection(*conn);
+			_close_connection(*conn);
 		}
 	}
 }
@@ -114,7 +117,7 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 					if(!svc::ServiceMgr::dispatch_protocol_data(std::move(node)))
 					{
 						goon = false;
-						tcp_handle.svr._close_connection(*conn);
+						_close_connection(*conn);
 					}
 				}
 				else
@@ -127,7 +130,7 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 			case IProtocolHandler::PPR_ERROR:
 			case IProtocolHandler::PPR_CLOSE:
 			default:
-				tcp_handle.svr._close_connection(*conn);
+				_close_connection(*conn);
 				break;
 			}
 
@@ -136,7 +139,7 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 	}
 	else if(nullptr == conn || nread < 0)
 	{
-		tcp_handle.svr._close_connection(*conn);
+		_close_connection(*conn);
 	}
 
 	delete buf->base;
@@ -152,6 +155,49 @@ void TCPServer::_on_closed(uv_handle_t* handle)
 {
 	tcp_t& tcp_handle = (tcp_t&)* handle;
 	tcp_handle.svr._connections.delete_connection(tcp_handle.conn_id);
+}
+
+void TCPServer::_on_write_timer(uv_timer_t* handle)
+{
+	uvtimer_t& tm_handle = (uvtimer_t&)* handle;
+	auto& outnodes = tm_handle.svr._tmp_outnodes;
+	auto& connmap = tm_handle.svr._connections;
+
+	svc::ServiceMgr::pull_protocol_data(outnodes);
+
+	for (const auto& node : outnodes)
+	{
+		auto conn = connmap.get_connection(node.conn_id);
+		if (conn)
+		{
+			if (!tm_handle.svr._ensure_protocol_data(*conn)) continue;
+			auto data = conn->get_app_protocol_data().lock();
+			IProtocolHandler* phdl = tm_handle.svr._get_protocol_handler(conn->get_iapp_protocol());
+
+			std::vector<uint8_t> obuffer;
+			if (phdl->proc_ostrm(obuffer, *data))
+			{
+				write_req_t* req = new write_req_t(std::move(obuffer));
+				uv_write(
+					req,
+					(uv_stream_t*)conn->get_stream(),
+					&req->buf,
+					1,
+					_on_written);
+			}
+			else
+			{
+				_close_connection(*conn);
+			}
+		}
+	}
+
+	uv_timer_start(&tm_handle, _on_write_timer, 1, 0);
+}
+
+void TCPServer::_on_written(uv_write_t* req, int status)
+{
+	delete (write_req_t*)req;
 }
 
 void TCPServer::_close_connection(const Connection<tcp_t>& conn)

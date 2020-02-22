@@ -34,6 +34,7 @@ namespace svc
 			const core::IProtocolData::service_inst_id_t& svc_inst_id);
 
 		static bool dispatch_protocol_data(core::ProtocolQueue::node_t&& node);
+		static void pull_protocol_data(std::vector<core::ProtocolQueue::node_t>& results);
 
 	private:
 		static std::size_t _ioqueue_id(

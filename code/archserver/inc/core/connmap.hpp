@@ -48,6 +48,19 @@ namespace core
 			_conns.erase(id);
 		}
 
+		conn_t* get_connection(conn_id_t id)
+		{
+			const auto& conn = _conns.find(id);
+			if (conn != _conns.cend())
+			{
+				return conn->second.get();
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+
 	private:
 		conn_id_t	_top_conn_id;
 		std::mutex	_top_conn_id_mtx;

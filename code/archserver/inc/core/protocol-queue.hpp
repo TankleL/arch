@@ -37,6 +37,7 @@ namespace core
 			_node& operator=(const _node& rhs) = delete;
 
 			std::weak_ptr<IProtocolData>	data;
+			std::shared_ptr<IProtocolData>	sdata;
 			uint16_t						conn_id;
 		} node_t;
 
@@ -52,6 +53,7 @@ namespace core
 	public:
 		void push(node_t&& node);
 		bool pop(node_t& node);
+		bool pop(std::vector<node_t>& results);
 		size_t size() const noexcept;
 
 	private:

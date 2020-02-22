@@ -110,6 +110,18 @@ std::size_t svc::ServiceMgr::_ioqueue_id(
 	return h1 ^ (h2 << 1);
 }
 
+void svc::ServiceMgr::pull_protocol_data(
+	std::vector<core::ProtocolQueue::node_t>& results)
+{
+	for (auto& ioques : _svc_ioqueues)
+	{
+		if (ioques.second->outque->size())
+		{
+			ioques.second->outque->pop(results);
+		}
+	}
+}
+
 
 
 

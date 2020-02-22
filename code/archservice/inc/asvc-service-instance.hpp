@@ -12,7 +12,9 @@ namespace archsvc
 		typedef uint16_t id_t;
 
 	public:
-		ServiceInstance(const id_t& id);
+		ServiceInstance(
+			const id_t& id,
+			const PipeServer::receiver_t& receiver);
 		~ServiceInstance();
 		
 	public:
@@ -21,6 +23,7 @@ namespace archsvc
 	private:
 		std::unique_ptr<PipeServer>	_pipesvr;
 		id_t						_id;
+		PipeServer::receiver_t		_receiver;
 	};
 
 }

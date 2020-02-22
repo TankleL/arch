@@ -56,11 +56,15 @@ namespace core
 			uv_buf_t					uvbuf;
 		} write_req_t;
 
+		typedef std::function<void(core::ProtocolQueue::node_t&)>
+			outque_guard_t;
+
 	public:
 		PipeClient(
 			const std::string& name,
 			const std::shared_ptr<ProtocolQueue>& inque,
-			const std::shared_ptr<ProtocolQueue>& outque);
+			const std::shared_ptr<ProtocolQueue>& outque,
+			const outque_guard_t& guard);
 		~PipeClient();
 
 		void send(core::ProtocolQueue::node_t&& node);
@@ -73,6 +77,7 @@ namespace core
 		std::string		_name;
 		std::shared_ptr<ProtocolQueue>	_inque;
 		std::shared_ptr<ProtocolQueue>	_outque;
+		outque_guard_t					_guard;
 
 		pipe_t			_pipe_handle;
 		uv_loop_t		_uvloop;

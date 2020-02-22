@@ -56,11 +56,11 @@ namespace ipro
 			~ArchProtocolData();
 
 		public:
-			virtual service_id_t service_id() const noexcept override;
-			virtual service_inst_id_t service_inst_id() const noexcept override;
-			virtual void set_service_inst_id(service_inst_id_t id) noexcept override;
-			virtual length_t length() const noexcept override;
-			virtual const uint8_t* data() const noexcept override;
+			virtual service_id_t		service_id() const noexcept override;
+			virtual service_inst_id_t	service_inst_id() const noexcept override;
+			virtual void				set_service_inst_id(service_inst_id_t id) noexcept override;
+			virtual length_t			length() const noexcept override;
+			virtual const uint8_t*		data() const noexcept override;
 
 		private:
 			std::vector<uint8_t>	_data;
@@ -69,6 +69,7 @@ namespace ipro
 			VUInt					_svc_inst_id;
 			VUInt					_content_length;
 
+			uint16_t				_conn_id;
 			ArchParsingPhase		_parsing_phase;
 		};
 

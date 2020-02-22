@@ -3,9 +3,11 @@
 using namespace archsvc;
 
 archsvc::PipeServer::PipeServer(
-	const std::string& pipename) noexcept
+	const std::string& pipename,
+	const receiver_t& receiver) noexcept
 	: _pipe_handle(*this)
 	, _uvloop({})
+	, _receiver(receiver)
 	, _thread(std::thread(std::bind(&PipeServer::_workthread, this)))
 {
 #if defined (WIN32) || defined(_WIN32)
@@ -17,6 +19,12 @@ archsvc::PipeServer::PipeServer(
 
 archsvc::PipeServer::~PipeServer()
 {}
+
+void archsvc::PipeServer::write(std::vector<uint8_t>&& data)
+{
+	write_req_t* req = new write_req_t(std::move(data));
+	uv_write(req, (uv_stream_t*)_pipe_handle.pipeclient, &req->buf, 1, _on_written);
+}
 
 void archsvc::PipeServer::wait()
 {
@@ -42,8 +50,9 @@ void archsvc::PipeServer::_on_connect(uv_stream_t* stream, int status)
 	}
 
 	pipe_t& pipe_handle = (pipe_t&)(*stream);
-	pipe_t* client = new pipe_t(pipe_handle.pipcli);
-	uv_pipe_init(&pipe_handle.pipcli._uvloop, client, 0);
+	pipe_t* client = new pipe_t(pipe_handle.pipesvr);
+	pipe_handle.pipeclient= client;
+	uv_pipe_init(&pipe_handle.pipesvr._uvloop, client, 0);
 	if (!uv_accept(stream, (uv_stream_t*)client))
 	{
 		uv_read_start((uv_stream_t*)client, _on_alloc, _on_read);
@@ -59,9 +68,38 @@ void archsvc::PipeServer::_on_read(uv_stream_t* client, ssize_t nread, const uv_
 	if (nread > 0)
 	{
 		pipe_t& pipe_handler = (pipe_t&)client;
-		pipe_handler.pipcli._dataproc.deserialize(
-			(const uint8_t*)buf->base,
-			(size_t)nread);
+
+		size_t offset = 0;
+		bool goon = true;
+		while (goon && ((ssize_t)offset < nread))
+		{
+			size_t procbytes = 0;
+			RawSvcDataHandler::ParsingPhase pp =
+				pipe_handler.pipesvr._dataproc.deserialize(
+					(uint8_t*)buf->base + offset,
+					nread - offset,
+					procbytes);
+			offset += procbytes;
+
+			if (RawSvcDataHandler::PP_Idle == pp)
+			{
+				std::vector<uint8_t> data;
+				pipe_handler.pipesvr._dataproc.get_deserialized(data);
+				
+				if (!pipe_handler.pipesvr._receiver(
+					std::move(data),
+					pipe_handler.pipesvr))
+				{
+					goon = false;
+					uv_close((uv_handle_t*)client, _on_closed);
+				}
+			}
+			else if (RawSvcDataHandler::PP_Bad == pp)
+			{
+				goon = false;
+				uv_close((uv_handle_t*)client, _on_closed);
+			}
+		}
 	}
 	else if (nread < 0)
 	{
@@ -74,6 +112,11 @@ void archsvc::PipeServer::_on_alloc(uv_handle_t* handle, size_t suggested_size, 
 {
 	buf->base = new char[suggested_size];
 	buf->len = (ULONG)suggested_size;
+}
+
+void archsvc::PipeServer::_on_written(uv_write_t* req, int status)
+{
+	delete (write_req_t*)req;
 }
 
 void archsvc::PipeServer::_on_closed(uv_handle_t* handle)

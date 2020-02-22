@@ -34,6 +34,16 @@ namespace core
 			Connection<_tcp_t>*	conn;
 		} tcp_t;
 
+		typedef struct _uvtimer_t : public uv_timer_t
+		{
+			_uvtimer_t(TCPServer& server)
+				: uv_timer_t({ 0 })
+				, svr(server)
+			{}
+
+			TCPServer& svr;
+		} uvtimer_t;
+
 		typedef struct _buf_t : public uv_buf_t
 		{
 			UNCOPYABLE(_buf_t);
@@ -53,6 +63,19 @@ namespace core
 			Buffer	buffer;
 		} _buf_t;
 
+		typedef struct _write_req_t : public uv_write_t
+		{
+			_write_req_t(std::vector<uint8_t>&& stream_data)
+				: data(std::move(stream_data))
+			{
+				buf.base = (char*)data.data();
+				buf.len = (ULONG)data.size();
+			}
+
+			std::vector<uint8_t>	data;
+			uv_buf_t				buf;
+		} write_req_t;
+
 	public:
 		TCPServer(
 			const std::string& ipaddr,
@@ -65,7 +88,6 @@ namespace core
 
 	private:
 		void _work_thread();
-		void _close_connection(const Connection<tcp_t>& conn);
 		bool _ensure_protocol_data(Connection<tcp_t>& conn);
 		IProtocolHandler* _get_protocol_handler(ProtocolType ptype);
 		void _switch_protocol(Connection<tcp_t>& conn);
@@ -77,8 +99,10 @@ namespace core
 
 		uv_loop_t		_uvloop;
 		tcp_t			_tcp_handle;
+		uvtimer_t		_tm_write;
 		ConnMap<_tcp_t>	_connections;
 		std::array<std::unique_ptr<IProtocolHandler>, PT_ProtoTypesNum> _proto_handlers;
+		std::vector<core::ProtocolQueue::node_t>	_tmp_outnodes;
 
 	private:
 		std::thread		_thread;
@@ -89,6 +113,9 @@ namespace core
 		static void _on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
 		static void _on_alloc_read_buf(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
 		static void _on_closed(uv_handle_t* handle);
+		static void _on_write_timer(uv_timer_t* handle);
+		static void	_on_written(uv_write_t* req, int status);
+		static void _close_connection(const Connection<tcp_t>& conn);
 	};
 
 }

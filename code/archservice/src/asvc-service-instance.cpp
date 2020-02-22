@@ -3,8 +3,11 @@
 
 using namespace archsvc;
 
-archsvc::ServiceInstance::ServiceInstance(const id_t& id)
+archsvc::ServiceInstance::ServiceInstance(
+	const id_t& id,
+	const PipeServer::receiver_t& receiver)
 	: _id(id)
+	, _receiver(receiver)
 {}
 
 archsvc::ServiceInstance::~ServiceInstance()
@@ -16,7 +19,9 @@ void archsvc::ServiceInstance::run()
 	oss_pipename << "asvc_data_pipe_" << _id;
 
 	_pipesvr = std::move(
-		std::make_unique<PipeServer>(oss_pipename.str()));
+		std::make_unique<PipeServer>(
+			oss_pipename.str(),
+			_receiver));
 
 	_pipesvr->wait();
 }

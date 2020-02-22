@@ -6,6 +6,7 @@ ipro::protocol_arch::ArchProtocolData::ArchProtocolData()
 	: _version(APV_Unknown)
 	, _parsing_phase(APP_Start)
 	, _content_length(0)
+	, _conn_id(0)
 {}
 
 ipro::protocol_arch::ArchProtocolData::~ArchProtocolData()
@@ -47,6 +48,7 @@ ipro::protocol_arch::ArchProtocol::get_protocol_type() const noexcept
 {
 	return PT_Arch;
 }
+
 
 core::IProtocolHandler::ProtoProcRet
 ipro::protocol_arch::ArchProtocol::proc_istrm(

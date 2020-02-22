@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vuint.hpp"
+#include "asvc-vuint.hpp"
 
 class VInt : private VUInt
 {

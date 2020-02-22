@@ -59,14 +59,13 @@ void svc::Service::new_instance(
 	const auto& inst = _insts.find(id);
 	if (inst == _insts.cend())
 	{
-		_insts.insert({
-				id,
-				std::make_unique<ServiceInstance>(
-					*this,
-					id,
-					inque,
-					outque)
-		});
+		auto new_inst = std::make_unique<ServiceInstance>(
+			*this,
+			id,
+			inque,
+			outque);
+
+		_insts.insert({id, std::move(new_inst)});
 		_inst_ids.push_back(id);
 	}
 	else

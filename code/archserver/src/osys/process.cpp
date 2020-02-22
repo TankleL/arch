@@ -5,12 +5,12 @@ using namespace osys;
 #if defined(_WIN32)
 #	include <Windows.h>
 
-process_handle_t osys::create_process(
+bool osys::create_process(
 		const std::string& appname,
 		const std::string& cmdline,
 		const std::string& workingdir)
 {
-	process_handle_t res;
+	bool res = true;
 
 	STARTUPINFOA startup_info;
 	PROCESS_INFORMATION process_info;
@@ -20,14 +20,13 @@ process_handle_t osys::create_process(
 
 	std::string fullappname = appname + ".exe";
 
-	res.cmdline =
-		std::make_unique<char>((int)cmdline.length() + 1);
-	memset(res.cmdline.get(), 0, cmdline.length() + 1);
-	memcpy(res.cmdline.get(), cmdline.data(), cmdline.length());
+	auto cmd = (char*)malloc(cmdline.length() + 1);
+	memset(cmd, 0, cmdline.length() + 1);
+	memcpy(cmd, cmdline.data(), cmdline.length());
 
 	if (::CreateProcessA(
 			fullappname.c_str(),
-			res.cmdline.get(),
+			cmd,
 			NULL,
 			NULL,
 			false,
@@ -38,15 +37,14 @@ process_handle_t osys::create_process(
 			&process_info))
 	{
 		::CloseHandle(process_info.hThread);
-		res.hproc = (void*)process_info.hProcess;
+		::CloseHandle(process_info.hProcess);
+	}
+	else
+	{
+		res = false;
 	}
 
 	return res;
-}
-
-void osys::close_process_handle(process_handle_t handle)
-{
-	::CloseHandle((HANDLE)handle.hproc);
 }
 
 

@@ -27,9 +27,12 @@ namespace svc
 		void write_pipe(core::ProtocolQueue::node_t&& node);
 
 	private:
+		void _pipe_outque_guard(core::ProtocolQueue::node_t& node);
+
+	private:
 		std::unique_ptr<core::PipeClient>		_pipecli;
+		core::IProtocolData::service_id_t		_svc_id;
 		core::IProtocolData::service_inst_id_t	_id;
-		osys::process_handle_t					_process;
 	};
 
 }

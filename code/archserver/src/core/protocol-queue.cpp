@@ -38,6 +38,23 @@ bool core::ProtocolQueue::pop(node_t& node)
 	return result;
 }
 
+bool core::ProtocolQueue::pop(std::vector<node_t>& results)
+{
+	bool succ = false;
+
+	std::unique_lock<std::mutex>	lock(_mtx_push_pop);
+	if (_queue.size())
+	{
+		for (auto& node : _queue)
+		{
+			results.push_back(std::move(node));
+		}
+		_queue.clear();
+		succ = true;
+	}
+	return succ;
+}
+
 size_t core::ProtocolQueue::size() const noexcept
 {
 	return _queue.size();

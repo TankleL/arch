@@ -20,5 +20,17 @@
                 </Instance>
             </Instances>
         </Service>
+        <Service>
+            <Name>echo</Name>
+            <Path>${SERVER_ROOT}/services/echo</Path>
+            <WorkingDir>${SERVER_ROOT}/services/echo</WorkingDir>
+            <Assembly>svc_echo</Assembly>
+            <ServiceID>8080</ServiceID>
+            <Instances>
+                <Instance>
+                    <InstanceID>1</InstanceID>
+                </Instance>
+            </Instances>
+        </Service>
     </Services>
 </MasterConfig>
