@@ -1,4 +1,5 @@
 #include "asvc-pipeserver.hpp"
+#include <iostream>
 
 using namespace archsvc;
 

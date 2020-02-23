@@ -26,6 +26,7 @@ svc::RawSvcDataHandler::ParsingPhase svc::RawSvcDataHandler::deserialize(
 		{
 		case PP_Idle:
 			_pp = PP_ConnIDH8;
+			_temp = core::ProtocolQueue::node_t();
 		case PP_ConnIDH8:
 			_conn_id.value = 0;
 			_conn_id.high = *(data + procbytes++);
@@ -76,7 +77,6 @@ void svc::RawSvcDataHandler::get_deserialized(
 	core::ProtocolQueue::node_t& node)
 {
 	node = std::move(_temp);
-	_temp = std::move(core::ProtocolQueue::node_t());
 }
 
 bool svc::RawSvcDataHandler::serialize(

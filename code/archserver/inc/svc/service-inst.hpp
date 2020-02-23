@@ -28,10 +28,13 @@ namespace svc
 
 	private:
 		void _pipe_outque_guard(core::ProtocolQueue::node_t& node);
+		void _pipe_errored(int err);
 		std::string _pipename() const;
 
 	private:
+		std::mutex								_mtx_pipe;
 		std::unique_ptr<core::PipeClient>		_pipecli;
+
 		core::IProtocolData::service_id_t		_svc_id;
 		core::IProtocolData::service_inst_id_t	_id;
 	};

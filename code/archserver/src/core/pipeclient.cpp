@@ -14,6 +14,7 @@ core::PipeClient::PipeClient(
 	, _pipe_handle(*this)
 	, _uvloop({})
 	, _async_write(*this)
+	, _uvtm_reconn(*this)
 {
 #if defined(WIN32) || defined(_WIN32)
 	_name = "\\\\?\\pipe\\" + name + ".sock";
@@ -29,13 +30,15 @@ void core::PipeClient::_workthread()
 {
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	uv_loop_init(&_uvloop);
-	uv_pipe_init(&_uvloop, (uv_pipe_t*)& _pipe_handle, 1);
+	uv_pipe_init(&_uvloop, &_pipe_handle, 0);
+	uv_timer_init(&_uvloop, &_uvtm_reconn);
 
 	uv_async_init(&_uvloop, &_async_write, _on_write);
 
-	conn_t conn(*this);
-	uv_pipe_connect(&conn, &_pipe_handle, _name.c_str(), _on_connect);
+	conn_t* conn = new conn_t(*this);
+	uv_pipe_connect(conn, &_pipe_handle, _name.c_str(), _on_connect);
 	uv_run(&_uvloop, UV_RUN_DEFAULT);
+	delete conn;
 }
 
 
@@ -48,9 +51,9 @@ void core::PipeClient::send(core::ProtocolQueue::node_t&& node)
 
 void core::PipeClient::_on_connect(uv_connect_t* conn, int status)
 {
+	conn_t* connection = (conn_t*)conn;
 	if(status >= 0)
 	{
-		conn_t* connection = (conn_t*)conn;
 		connection->uvstream = conn->handle;
 		uv_read_start(
 			conn->handle,
@@ -59,16 +62,36 @@ void core::PipeClient::_on_connect(uv_connect_t* conn, int status)
 	}
 	else
 	{
-		// TODO: handle connection failures.
+		if (connection->pipcli._conn_retied < 5)
+		{
+			uv_timer_start(
+				&connection->pipcli._uvtm_reconn,
+				_on_tm_reconn,
+				5000,
+				0);
+		}
+		delete connection;
 	}
+}
+
+void core::PipeClient::_on_tm_reconn(uv_timer_t* handle)
+{
+	tm_reconn_t& reconn_handle = (tm_reconn_t&)* handle;
+
+	conn_t* conn = new conn_t(reconn_handle.pipcli);
+	uv_pipe_connect(
+		conn,
+		&reconn_handle.pipcli._pipe_handle,
+		reconn_handle.pipcli._name.c_str(),
+		_on_connect);
 }
 
 void core::PipeClient::_on_read(uv_stream_t* client, ssize_t nread, const uv_buf_t* buf)
 {
+	pipe_t& pipe_handle = (pipe_t&)client;
+
 	if (nread > 0)
 	{
-		pipe_t& pipe_handle = (pipe_t&)client;
-
 		size_t offset = 0;
 		bool goon = true;
 		while (goon && ((ssize_t)offset< nread))

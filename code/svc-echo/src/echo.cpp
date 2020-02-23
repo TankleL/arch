@@ -14,15 +14,20 @@ bool on_receive(
 
 int main(int argc, char** argv)
 {
-	ServiceInstance::id_t svc_inst_id;
+	ServiceInstance::svc_id_t	svc_id = 0;
+	ServiceInstance::id_t		svc_inst_id = 0;
 
-	//system("pause");
 	int opt;
-	std::stringstream ioss;
-	while ((opt = getopt(argc, argv, "i:")) != -1)
+	while ((opt = getopt(argc, argv, "s:i:")) != -1)
 	{
+		std::stringstream ioss;
 		switch (opt)
 		{
+		case 's':
+			ioss << optarg;
+			ioss >> svc_id;
+			break;
+			
 		case 'i': // service instance id
 			ioss << optarg;
 			ioss >> svc_inst_id;
@@ -37,9 +42,12 @@ int main(int argc, char** argv)
 		}
 	}
 
+
+	system("pause");
 	ServiceInstance inst(
+		svc_id,
 		svc_inst_id,
-		on_receive);
+		std::bind(on_receive, std::placeholders::_1, std::placeholders::_2));
 	inst.run();
 
     return 0;

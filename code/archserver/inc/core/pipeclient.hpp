@@ -12,6 +12,7 @@ namespace core
 	{
 		UNCOPYABLE(PipeClient);
 		UNMOVABLE(PipeClient);
+
 	public:
 		typedef struct _pipe_t : public uv_pipe_t
 		{
@@ -41,6 +42,15 @@ namespace core
 
 			PipeClient& pipcli;
 		} async_t;
+
+		typedef struct _tm_reconn_t : public uv_timer_t
+		{
+			_tm_reconn_t(PipeClient& pipeclient)
+				: pipcli(pipeclient)
+			{}
+
+			PipeClient& pipcli;
+		} tm_reconn_t;
 
 		typedef struct _write_req_t : public uv_write_t
 		{
@@ -78,10 +88,12 @@ namespace core
 		std::shared_ptr<ProtocolQueue>	_inque;
 		std::shared_ptr<ProtocolQueue>	_outque;
 		outque_guard_t					_guard;
+		int				_conn_retied;
 
 		pipe_t			_pipe_handle;
 		uv_loop_t		_uvloop;
 		async_t			_async_write;
+		tm_reconn_t		_uvtm_reconn;
 		svc::RawSvcDataHandler	_dataproc;
 
 	private:
@@ -91,6 +103,7 @@ namespace core
 		static void _on_write(uv_async_t* handle);
 		static void	_on_written(uv_write_t* req, int status);
 		static void _on_closed(uv_handle_t* handle);
+		static void _on_tm_reconn(uv_timer_t* handle);
 	};
 
 

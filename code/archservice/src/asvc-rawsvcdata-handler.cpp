@@ -25,6 +25,7 @@ archsvc::RawSvcDataHandler::deserialize(
 		{
 		case PP_Idle:
 			_pp = PP_ConnIDH8;
+			_temp = std::vector<uint8_t>();
 		case PP_ConnIDH8:
 			_conn_id.value = 0;
 			_conn_id.high = *(data + procbytes++);
@@ -55,7 +56,7 @@ archsvc::RawSvcDataHandler::deserialize(
 				_len.value;
 
 			_temp.insert(
-				_temp.end(),
+				_temp.cend(),
 				data + procbytes,
 				data + procbytes + canread);
 			procbytes += canread;
@@ -73,8 +74,7 @@ archsvc::RawSvcDataHandler::deserialize(
 void archsvc::RawSvcDataHandler::get_deserialized(
 	std::vector<uint8_t>& data)
 {
-	data = std::move(_temp);
-	_temp = std::move(std::vector<uint8_t>());
+	data = _temp;
 }
 
 void archsvc::RawSvcDataHandler::serialiaze(

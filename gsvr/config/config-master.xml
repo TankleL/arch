@@ -8,6 +8,7 @@
     </Listen>
 
     <Services>
+        <!--
         <Service>
             <Name>gamechannel</Name>
             <Path>${SERVER_ROOT}/services/gamechannel</Path>
@@ -20,6 +21,7 @@
                 </Instance>
             </Instances>
         </Service>
+        -->
         <Service>
             <Name>echo</Name>
             <Path>${SERVER_ROOT}/services/echo</Path>
