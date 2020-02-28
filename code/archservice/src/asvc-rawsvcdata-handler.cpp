@@ -74,7 +74,7 @@ archsvc::RawSvcDataHandler::deserialize(
 void archsvc::RawSvcDataHandler::get_deserialized(
 	std::vector<uint8_t>& data)
 {
-	data = _temp;
+	data = std::move(_temp);
 }
 
 void archsvc::RawSvcDataHandler::serialiaze(

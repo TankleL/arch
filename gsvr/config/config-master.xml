@@ -32,6 +32,9 @@
                 <Instance>
                     <InstanceID>1</InstanceID>
                 </Instance>
+                <Instance>
+                    <InstanceID>2</InstanceID>
+                </Instance>
             </Instances>
         </Service>
     </Services>
