@@ -6,7 +6,8 @@ using namespace archsvc;
 archsvc::PipeServer::PipeServer(
 	const std::string& pipename,
 	const receiver_t& receiver) noexcept
-	: _pipe_handle(*this)
+	: _pipe_server(*this)
+	, _pipe_client(*this)
 	, _uvloop({})
 	, _receiver(receiver)
 	, _thread(std::thread(std::bind(&PipeServer::_workthread, this)))
@@ -24,7 +25,7 @@ archsvc::PipeServer::~PipeServer()
 void archsvc::PipeServer::write(std::vector<uint8_t>&& data)
 {
 	write_req_t* req = new write_req_t(std::move(data));
-	uv_write(req, (uv_stream_t*)_pipe_handle.pipeclient, &req->buf, 1, _on_written);
+	uv_write(req, (uv_stream_t*)&_pipe_client, &req->buf, 1, _on_written);
 }
 
 void archsvc::PipeServer::wait()
@@ -35,10 +36,10 @@ void archsvc::PipeServer::wait()
 void archsvc::PipeServer::_workthread()
 {
 	uv_loop_init(&_uvloop);
-	uv_pipe_init(&_uvloop, &_pipe_handle, 0);
+	uv_pipe_init(&_uvloop, &_pipe_server, 0);
 
-	uv_pipe_bind(&_pipe_handle, _pipename.c_str());
-	uv_listen((uv_stream_t*)& _pipe_handle, 100, _on_connect);
+	uv_pipe_bind(&_pipe_server, _pipename.c_str());
+	uv_listen((uv_stream_t*)&_pipe_server, 100, _on_connect);
 
 	uv_run(&_uvloop, UV_RUN_DEFAULT);
 }
@@ -52,7 +53,6 @@ void archsvc::PipeServer::_on_connect(uv_stream_t* stream, int status)
 
 	pipe_t& pipe_handle = (pipe_t&)(*stream);
 	pipe_t* client = new pipe_t(pipe_handle.pipesvr);
-	pipe_handle.pipeclient= client;
 	uv_pipe_init(&pipe_handle.pipesvr._uvloop, client, 0);
 	if (!uv_accept(stream, (uv_stream_t*)client))
 	{
@@ -68,7 +68,7 @@ void archsvc::PipeServer::_on_read(uv_stream_t* client, ssize_t nread, const uv_
 {
 	if (nread > 0)
 	{
-		pipe_t& pipe_handler = (pipe_t&)client;
+		pipe_t& pipe_handler = (pipe_t&)*client;
 
 		size_t offset = 0;
 		bool goon = true;

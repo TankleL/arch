@@ -17,11 +17,9 @@ namespace archsvc
 		{
 			_pipe_t(PipeServer& pipesvr)
 				: pipesvr(pipesvr)
-				, pipeclient(nullptr)
 			{}
 
 			PipeServer&	pipesvr;
-			_pipe_t*	pipeclient;
 		} pipe_t;
 
 		typedef std::function<
@@ -56,7 +54,8 @@ namespace archsvc
 		void _workthread();
 
 	private:
-		pipe_t				_pipe_handle;
+		pipe_t				_pipe_server;
+		pipe_t				_pipe_client;
 		uv_loop_t			_uvloop;
 		std::string			_pipename;
 		RawSvcDataHandler	_dataproc;

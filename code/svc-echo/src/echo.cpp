@@ -43,7 +43,6 @@ int main(int argc, char** argv)
 	}
 
 
-	system("pause");
 	ServiceInstance inst(
 		svc_id,
 		svc_inst_id,
