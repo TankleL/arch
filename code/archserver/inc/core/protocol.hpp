@@ -62,7 +62,7 @@ namespace core
 	public:
 		virtual ProtocolType	get_protocol_type() const noexcept = 0;
 		virtual ProtoProcRet	proc_istrm(IProtocolData& dest, std::uint8_t* readbuf, size_t toreadlen, size_t& procbytes) = 0;
-		virtual bool			proc_ostrm(std::vector<uint8_t>& obuffer, const IProtocolData& src) = 0;
+		virtual bool			proc_ostrm(std::vector<uint8_t>& obuffer, const IProtocolData& rsp, const IProtocolData& req) = 0;
 		virtual bool			proc_check_switch(ProtocolType& dest_proto, const IProtocolData& obj) = 0;
 	};
 

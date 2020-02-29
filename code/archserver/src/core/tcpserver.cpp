@@ -3,6 +3,7 @@
 #include "protocol.hpp"
 #include "protocol-arch.hpp"
 #include "service-mgr.hpp"
+#include "ccf.hpp"
 
 using namespace core;
 
@@ -73,7 +74,7 @@ void TCPServer::_on_connect(
 		}
 		else
 		{
-			_close_connection(*conn);
+			_close_connection(conn->get_stream());
 		}
 	}
 }
@@ -113,11 +114,15 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 				ProtocolType prot_switchto = PT_Unknown;
 				if (!phdl->proc_check_switch(prot_switchto, *data))
 				{
-					ProtocolQueue::node_t node(data, conn->get_id());
+					ProtocolQueue::node_t node(
+						data,
+						conn->get_id(),
+						0);
+
 					if(!svc::ServiceMgr::dispatch_protocol_data(std::move(node)))
 					{
 						goon = false;
-						_close_connection(*conn);
+						_close_connection(&tcp_handle);
 					}
 				}
 				else
@@ -130,7 +135,7 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 			case IProtocolHandler::PPR_ERROR:
 			case IProtocolHandler::PPR_CLOSE:
 			default:
-				_close_connection(*conn);
+				_close_connection(&tcp_handle);
 				break;
 			}
 
@@ -139,7 +144,7 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 	}
 	else if(nullptr == conn || nread < 0)
 	{
-		_close_connection(*conn);
+		_close_connection(&tcp_handle);
 	}
 
 	delete buf->base;
@@ -170,41 +175,67 @@ void TCPServer::_on_write_timer(uv_timer_t* handle)
 		auto conn = connmap.get_connection(node.conn_id);
 		if (conn)
 		{
-			if (!tm_handle.svr._ensure_protocol_data(*conn)) continue;
-			auto data = conn->get_app_protocol_data().lock();
-			IProtocolHandler* phdl = tm_handle.svr._get_protocol_handler(conn->get_iapp_protocol());
-
-			std::vector<uint8_t> obuffer;
-			if (phdl->proc_ostrm(obuffer, *data))
+			if (node.sdata->length() > 0)
 			{
-				write_req_t* req = new write_req_t(std::move(obuffer));
-				uv_write(
-					req,
-					(uv_stream_t*)conn->get_stream(),
-					&req->buf,
-					1,
-					_on_written);
+				if (!conn->get_app_protocol_data().expired())
+				{
+					auto reqdata = conn->get_app_protocol_data().lock();
+
+					IProtocolHandler* phdl = tm_handle.svr._get_protocol_handler(conn->get_oapp_protocol());
+					std::vector<uint8_t> obuffer;
+
+					if (phdl->proc_ostrm(obuffer, *node.sdata, *reqdata))
+					{
+						write_req_t* req = new write_req_t(
+							std::move(obuffer),
+							node.ccf);
+						uv_write(
+							req,
+							(uv_stream_t*)conn->get_stream(),
+							&req->buf,
+							1,
+							_on_written);
+					}
+					else
+					{ // failed to generate response stream data
+						_close_connection(conn->get_stream());
+					}
+				}
+				else
+				{ // lost the original request data
+					_close_connection(conn->get_stream());
+				}
 			}
 			else
-			{
-				_close_connection(*conn);
+			{ // no response data.
+				if (ccf_check(node.ccf, CCF_Close))
+				{
+					_close_connection(conn->get_stream());
+				}
 			}
 		}
 	}
+	outnodes.clear();
 
 	uv_timer_start(&tm_handle, _on_write_timer, 1, 0);
 }
 
 void TCPServer::_on_written(uv_write_t* req, int status)
 {
-	delete (write_req_t*)req;
+	write_req_t* wrt_req = (write_req_t*)req;
+	if (ccf_check(wrt_req->ccf, CCF_Close))
+	{
+		_close_connection((tcp_t*)wrt_req->handle);
+	}
+
+	delete wrt_req;
 }
 
-void TCPServer::_close_connection(const Connection<tcp_t>& conn)
+void TCPServer::_close_connection(tcp_t* handle)
 {
-	if (!conn.get_closing())
+	if (!uv_is_closing((uv_handle_t*)handle))
 	{
-		uv_close((uv_handle_t*) conn.get_stream(), _on_closed);
+		uv_close((uv_handle_t*)handle, _on_closed);
 	}
 }
 
@@ -223,7 +254,7 @@ bool TCPServer::_ensure_protocol_data(Connection<tcp_t>& conn)
 
 		default:
 			succ = false;
-			_close_connection(conn);
+			_close_connection(conn.get_stream());
 		}
 	}
 	return succ;

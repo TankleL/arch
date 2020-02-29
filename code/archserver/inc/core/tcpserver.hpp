@@ -65,8 +65,11 @@ namespace core
 
 		typedef struct _write_req_t : public uv_write_t
 		{
-			_write_req_t(std::vector<uint8_t>&& stream_data)
+			_write_req_t(
+				std::vector<uint8_t>&& stream_data,
+				uint16_t ccflags)
 				: data(std::move(stream_data))
+				, ccf(ccflags)
 			{
 				buf.base = (char*)data.data();
 				buf.len = (ULONG)data.size();
@@ -74,6 +77,7 @@ namespace core
 
 			std::vector<uint8_t>	data;
 			uv_buf_t				buf;
+			uint16_t				ccf;
 		} write_req_t;
 
 	public:
@@ -115,7 +119,7 @@ namespace core
 		static void _on_closed(uv_handle_t* handle);
 		static void _on_write_timer(uv_timer_t* handle);
 		static void	_on_written(uv_write_t* req, int status);
-		static void _close_connection(const Connection<tcp_t>& conn);
+		static void _close_connection(tcp_t* handle);
 	};
 
 }

@@ -88,7 +88,6 @@ namespace core
 		std::shared_ptr<ProtocolQueue>	_inque;
 		std::shared_ptr<ProtocolQueue>	_outque;
 		outque_guard_t					_guard;
-		int				_conn_retied;
 
 		pipe_t			_pipe_handle;
 		uv_loop_t		_uvloop;

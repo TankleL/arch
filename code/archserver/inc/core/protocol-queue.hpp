@@ -12,24 +12,31 @@ namespace core
 		{
 			_node() noexcept
 				: conn_id(0)
+				, ccf(0)
 			{}
 
 			_node(
 				const std::weak_ptr<IProtocolData>& protocol_data,
-				uint16_t connection_id)
+				uint16_t connection_id,
+				uint16_t conn_ctrl_flags)
 				: data(protocol_data)
 				, conn_id(connection_id)
+				, ccf(conn_ctrl_flags)
 			{}
 
 			_node(_node&& rhs) noexcept
 				: data(std::move(rhs.data))
+				, sdata(std::move(rhs.sdata))
 				, conn_id(rhs.conn_id)
+				, ccf(rhs.ccf)
 			{}
 
 			_node& operator=(_node&& rhs) noexcept
 			{
 				data = std::move(rhs.data);
+				sdata = std::move(rhs.sdata);
 				conn_id = rhs.conn_id;
+				ccf = rhs.ccf;
 				return *this;
 			}
 
@@ -39,6 +46,7 @@ namespace core
 			std::weak_ptr<IProtocolData>	data;
 			std::shared_ptr<IProtocolData>	sdata;
 			uint16_t						conn_id;
+			uint16_t						ccf;	// connection control flags
 		} node_t;
 
 	public:

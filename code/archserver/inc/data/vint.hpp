@@ -7,6 +7,10 @@ class VInt : private VUInt
 public:
 	VInt() noexcept;
 	VInt(std::int32_t val) noexcept;
+	VInt(const VInt& rhs) noexcept;
+	VInt(VInt&& rhs) noexcept;
+	VInt& operator=(const VInt& rhs) noexcept;
+	VInt& operator=(VInt&& rhs) noexcept;
 	~VInt() noexcept;
 
 public:

@@ -20,6 +20,10 @@ public:
 public:
 	VUInt() noexcept;
 	VUInt(std::uint32_t val) noexcept;
+	VUInt(const VUInt& rhs) noexcept;
+	VUInt(VUInt&& rhs) noexcept;
+	VUInt& operator=(const VUInt& rhs) noexcept;
+	VUInt& operator=(VUInt&& rhs) noexcept;
 	~VUInt() noexcept;
 
 public:

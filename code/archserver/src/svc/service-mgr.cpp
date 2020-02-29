@@ -18,9 +18,9 @@ bool svc::ServiceMgr::dispatch_protocol_data(
 	core::ProtocolQueue::node_t&& node)
 {
 	bool result = true;
-	auto protodata = node.data.lock();
-	if (protodata)
+	if (!node.data.expired())
 	{
+		auto protodata = node.data.lock();
 		auto svc_id = protodata->service_id();
 		auto inst_id = protodata->service_inst_id();
 
@@ -33,7 +33,9 @@ bool svc::ServiceMgr::dispatch_protocol_data(
 			}
 			else
 			{  // assign an instance randomly for the request
-				svc->second->get_instance_random()->write_pipe(std::move(node));
+				core::IProtocolData::service_inst_id_t inst_id;
+				svc->second->get_instance_random(inst_id)->write_pipe(std::move(node));
+				protodata->set_service_inst_id(inst_id);
 			}
 		}
 	}
@@ -115,9 +117,9 @@ void svc::ServiceMgr::pull_protocol_data(
 {
 	for (auto& ioques : _svc_ioqueues)
 	{
-		if (ioques.second->outque->size())
+		if (ioques.second->inque->size())
 		{
-			ioques.second->outque->pop(results);
+			ioques.second->inque->pop(results);
 		}
 	}
 }

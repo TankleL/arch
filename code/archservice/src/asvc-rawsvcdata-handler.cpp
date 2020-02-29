@@ -34,16 +34,27 @@ archsvc::RawSvcDataHandler::deserialize(
 
 		case PP_ConnIDL8:
 			_conn_id.low = *(data + procbytes++);
-			_pp = PP_High8;
+			_pp = PP_CCFH8;
 			break;
 
-		case PP_High8:
+		case PP_CCFH8:
+			_ccf.value = 0;
+			_ccf.high = *(data + procbytes++);
+			_pp = PP_CCFL8;
+			break;
+
+		case PP_CCFL8:
+			_ccf.low = *(data + procbytes++);
+			_pp = PP_DataSizeH8;
+			break;
+
+		case PP_DataSizeH8:
 			_len.value = 0;
 			_len.high = *(data + procbytes++);
-			_pp = PP_Low8;
+			_pp = PP_DataSizeL8;
 			break;
 
-		case PP_Low8:
+		case PP_DataSizeL8:
 			_len.low = *(data + procbytes++);
 			_pp = PP_Data;
 			break;
@@ -72,28 +83,40 @@ archsvc::RawSvcDataHandler::deserialize(
 }
 
 void archsvc::RawSvcDataHandler::get_deserialized(
-	std::vector<uint8_t>& data)
+	std::vector<uint8_t>& data,
+	uint16_t& conn_id,
+	uint16_t& ccf)
 {
 	data = std::move(_temp);
+	conn_id = _conn_id.value;
+	ccf = _ccf.value;
 }
 
 void archsvc::RawSvcDataHandler::serialiaze(
 	std::vector<uint8_t>& odata,
 	const uint16_t& conn_id,
+	const uint16_t& ccf,
 	const std::vector<uint8_t>& idata)
 {
 	uint16_t datasize = (uint16_t)idata.size();
 
 	/* *************************************
 	 * [Data 0]    conn id
-	 * [Size]      2 byte 
+	 * [Size]      2 bytes 
 	 ************************************* */
 	odata.push_back(_high8(conn_id));
 	odata.push_back(_low8(conn_id));
 
 	/* *************************************
+	 * [Data 0]    ccf
+	 * [Size]      2 bytes 
+	 ************************************* */
+	odata.push_back(_high8(ccf));
+	odata.push_back(_low8(ccf));
+
+	/* *************************************
 	 * [Data 0]    protocol data size
-	 * [Size]      2 byte 
+	 * [Size]      2 bytes 
 	 ************************************* */
 	odata.push_back(_high8(datasize));
 	odata.push_back(_low8(datasize));

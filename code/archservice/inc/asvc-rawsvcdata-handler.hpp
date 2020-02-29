@@ -14,8 +14,10 @@ namespace archsvc
 			PP_Idle,
 			PP_ConnIDH8,
 			PP_ConnIDL8,
-			PP_High8,
-			PP_Low8,
+			PP_CCFH8,
+			PP_CCFL8,
+			PP_DataSizeH8,
+			PP_DataSizeL8,
 			PP_Data,
 
 			PP_Bad
@@ -49,9 +51,13 @@ namespace archsvc
 		void serialiaze(
 			std::vector<uint8_t>& odata,
 			const uint16_t& conn_id,
+			const uint16_t& ccf,
 			const std::vector<uint8_t>& idata);
 
-		void get_deserialized(std::vector<uint8_t>& data);
+		void get_deserialized(
+			std::vector<uint8_t>& data,
+			uint16_t& conn_id,
+			uint16_t& ccf);
 
 	private:
 		static uint8_t	_high8(uint16_t n);
@@ -60,8 +66,9 @@ namespace archsvc
 	private:
 		std::vector<uint8_t>	_temp;
 		ParsingPhase			_pp;
-		payload_u16_u			_len;
 		payload_u16_u			_conn_id;
+		payload_u16_u			_ccf;
+		payload_u16_u			_len;
 	};
 
 }

@@ -21,6 +21,43 @@ VUInt::VUInt(std::uint32_t val) noexcept
 	value(val);
 }
 
+VUInt::VUInt(const VUInt& rhs) noexcept
+	: _data(rhs._data)
+	, _esize(rhs._esize)
+	, _dsize(rhs._dsize)
+	, _digst(rhs._digst)
+	, _value(rhs._value)
+{
+}
+
+VUInt::VUInt(VUInt&& rhs) noexcept
+	: _data(std::move(rhs._data))
+	, _esize(rhs._esize)
+	, _dsize(rhs._dsize)
+	, _digst(rhs._digst)
+	, _value(rhs._value)
+{}
+
+VUInt& VUInt::operator=(const VUInt& rhs) noexcept
+{
+	_data = rhs._data;
+	_esize = rhs._esize;
+	_dsize = rhs._dsize;
+	_digst = rhs._digst;
+	_value = rhs._value;
+	return *this;
+}
+
+VUInt& VUInt::operator=(VUInt&& rhs) noexcept
+{
+	_data = std::move(rhs._data);
+	_esize = rhs._esize;
+	_dsize = rhs._dsize;
+	_digst = rhs._digst;
+	_value = rhs._value;
+	return *this;
+}
+
 VUInt::~VUInt()
 {}
 
@@ -108,7 +145,7 @@ VUInt::DigestStatus VUInt::digest(const std::uint8_t& byte) noexcept
 	{
 	case DS_Idle:
 		memset(_data.data(), 0, _data.size());
-
+		_data[0] = byte;
 		if ((byte & 0x80) == 0) // 0 ~ 7 bits
 		{
 			_value = byte & 0x7f;
@@ -150,6 +187,7 @@ VUInt::DigestStatus VUInt::digest(const std::uint8_t& byte) noexcept
 		break;
 
 	case DS_Decode_0:
+		_data[1] = byte;
 		switch (_esize)
 		{
 		case 2:
@@ -178,6 +216,7 @@ VUInt::DigestStatus VUInt::digest(const std::uint8_t& byte) noexcept
 		break;
 
 	case DS_Decode_1:
+		_data[2] = byte;
 		switch (_esize)
 		{
 		case 3:
@@ -201,6 +240,7 @@ VUInt::DigestStatus VUInt::digest(const std::uint8_t& byte) noexcept
 		break;
 
 	case DS_Decode_2:
+		_data[3] = byte;
 		switch(_esize)
 		{
 		case 4:
@@ -219,6 +259,7 @@ VUInt::DigestStatus VUInt::digest(const std::uint8_t& byte) noexcept
 		break;
 
 	case DS_Decode_3:
+		_data[4] = byte;
 		if(_esize == 5)
 		{
 			_digst = DS_Idle;

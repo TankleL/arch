@@ -19,7 +19,6 @@ namespace core
 			: _id(id)
 			, _iapp_protocol(default_protocol)
 			, _oapp_protocol(default_protocol)
-			, _closing(false)
 		{}
 
 		void set_id(conn_id_t id) noexcept
@@ -40,16 +39,6 @@ namespace core
 		StreamT* get_stream() const noexcept
 		{
 			return _stream.get();
-		}
-
-		void set_closing(bool closing) noexcept
-		{
-			_closing = closing;
-		}
-
-		bool get_closing() const noexcept
-		{
-			return _closing;
 		}
 
 		void set_iapp_protocol(const ProtocolType& aptype) noexcept
@@ -88,7 +77,6 @@ namespace core
 		conn_id_t		_id;
 		ProtocolType	_iapp_protocol;
 		ProtocolType	_oapp_protocol;
-		bool			_closing;
 	};
 
 }

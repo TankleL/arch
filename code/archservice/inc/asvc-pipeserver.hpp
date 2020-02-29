@@ -25,6 +25,8 @@ namespace archsvc
 		typedef std::function<
 			bool(
 				std::vector<uint8_t>&& data,
+				uint16_t conn_id,
+				uint16_t ccf,
 				PipeServer& pipe)> receiver_t;
 
 		typedef struct _write_req_t : public uv_write_t
@@ -47,7 +49,10 @@ namespace archsvc
 			const receiver_t& receiver) noexcept;
 		~PipeServer();
 
-		void write(std::vector<uint8_t>&& data);
+		void write(
+			std::vector<uint8_t>&& data,
+			uint16_t conn_id,
+			uint16_t ccf);
 		void wait();
 
 	private:
@@ -61,6 +66,7 @@ namespace archsvc
 		RawSvcDataHandler	_dataproc;
 
 		receiver_t			_receiver;
+		bool				_accepted;
 
 	private:
 		std::thread	_thread;

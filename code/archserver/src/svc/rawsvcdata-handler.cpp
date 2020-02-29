@@ -36,15 +36,27 @@ svc::RawSvcDataHandler::ParsingPhase svc::RawSvcDataHandler::deserialize(
 		case PP_ConnIDL8:
 			_conn_id.low = *(data + procbytes++);
 			_temp.conn_id = _conn_id.value;
-			_pp = PP_High8;
+			_pp = PP_CCFH8;
 			break;
 
-		case PP_High8:
+		case PP_CCFH8:
+			_ccf.value = 0;
+			_ccf.high = *(data + procbytes++);
+			_pp = PP_CCFL8;
+			break;
+
+		case PP_CCFL8:
+			_ccf.low = *(data + procbytes++);
+			_temp.ccf = _ccf.value;
+			_pp = PP_DataSizeH8;
+			break;
+
+		case PP_DataSizeH8:
 			_len.high = *(data + procbytes++);
-			_pp = PP_Low8;
+			_pp = PP_DataSizeL8;
 			break;
 
-		case PP_Low8:
+		case PP_DataSizeL8:
 			_len.low = *(data + procbytes++);
 			_pp = PP_Data;
 			break;
@@ -81,7 +93,6 @@ void svc::RawSvcDataHandler::get_deserialized(
 
 bool svc::RawSvcDataHandler::serialize(
 	std::vector<uint8_t>& data,
-	const uint16_t& conn_id,
 	const core::ProtocolQueue::node_t& node)
 {
 	bool result = true;
@@ -92,14 +103,21 @@ bool svc::RawSvcDataHandler::serialize(
 
 		/* *************************************
 		 * [Data 0]    conn id
-		 * [Size]      2 byte 
+		 * [Size]      2 bytes 
 		 ************************************* */
-		data.push_back(_high8(conn_id));
-		data.push_back(_low8(conn_id));
+		data.push_back(_high8(node.conn_id));
+		data.push_back(_low8(node.conn_id));
+
+		/* *************************************
+		 * [Data 0]    ccf
+		 * [Size]      2 bytes 
+		 ************************************* */
+		data.push_back(_high8(node.ccf));
+		data.push_back(_low8(node.ccf));
 
 		/* *************************************
 		 * [Data 0]    protocol data size
-		 * [Size]      2 byte 
+		 * [Size]      2 bytes 
 		 ************************************* */
 		data.push_back(_high8(datasize));
 		data.push_back(_low8(datasize));

@@ -42,7 +42,7 @@ namespace ipro
 		public:
 			virtual core::ProtocolType	get_protocol_type() const noexcept override;
 			virtual ProtoProcRet	proc_istrm(core::IProtocolData& dest, std::uint8_t* readbuf, size_t toreadlen, size_t& procbytes) override;
-			virtual bool			proc_ostrm(std::vector<uint8_t>& obuffer, const core::IProtocolData& src) override;
+			virtual bool			proc_ostrm(std::vector<uint8_t>& obuffer, const core::IProtocolData& rsp, const core::IProtocolData& req) override;
 			virtual bool			proc_check_switch(core::ProtocolType& dest_proto, const core::IProtocolData& obj) override;
 		};
 

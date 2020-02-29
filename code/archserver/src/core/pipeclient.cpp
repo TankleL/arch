@@ -38,7 +38,6 @@ void core::PipeClient::_workthread()
 	conn_t* conn = new conn_t(*this);
 	uv_pipe_connect(conn, &_pipe_handle, _name.c_str(), _on_connect);
 	uv_run(&_uvloop, UV_RUN_DEFAULT);
-	delete conn;
 }
 
 
@@ -62,14 +61,11 @@ void core::PipeClient::_on_connect(uv_connect_t* conn, int status)
 	}
 	else
 	{
-		if (connection->pipcli._conn_retied < 5)
-		{
-			uv_timer_start(
-				&connection->pipcli._uvtm_reconn,
-				_on_tm_reconn,
-				5000,
-				0);
-		}
+		uv_timer_start(
+			&connection->pipcli._uvtm_reconn,
+			_on_tm_reconn,
+			5000,
+			0);
 		delete connection;
 	}
 }
@@ -88,7 +84,7 @@ void core::PipeClient::_on_tm_reconn(uv_timer_t* handle)
 
 void core::PipeClient::_on_read(uv_stream_t* client, ssize_t nread, const uv_buf_t* buf)
 {
-	pipe_t& pipe_handle = (pipe_t&)client;
+	pipe_t& pipe_handle = (pipe_t&)*client;
 
 	if (nread > 0)
 	{
@@ -139,7 +135,9 @@ void core::PipeClient::_on_write(uv_async_t* async)
 	if (async_handle.pipcli._outque->pop(node))
 	{
 		std::vector<uint8_t>	stream_data;
-		if (async_handle.pipcli._dataproc.serialize(stream_data, node.conn_id, node))
+		if (async_handle.pipcli._dataproc.serialize(
+				stream_data,
+				node))
 		{
 			write_req_t* req = new write_req_t(std::move(stream_data));
 			uv_write(
@@ -164,9 +162,7 @@ void core::PipeClient::_on_alloc(uv_handle_t* handle, size_t suggested_size, uv_
 }
 
 void core::PipeClient::_on_closed(uv_handle_t* handle)
-{
-	delete handle;
-}
+{}
 
 
 

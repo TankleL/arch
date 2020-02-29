@@ -152,34 +152,38 @@ ipro::protocol_arch::ArchProtocol::proc_istrm(
 
 
 bool
-ipro::protocol_arch::ArchProtocol::proc_ostrm(std::vector<uint8_t>& obuffer, const IProtocolData& src)
+ipro::protocol_arch::ArchProtocol::proc_ostrm(
+	std::vector<uint8_t>& obuffer,
+	const IProtocolData& rsp,
+	const IProtocolData& req)
 {
 	bool result = true;
-	const ArchProtocolData& obj = static_cast<const ArchProtocolData&>(src);
+	const core::PlainProtocolData& rspobj = static_cast<const core::PlainProtocolData&>(rsp);
+	const ArchProtocolData& reqobj = static_cast<const ArchProtocolData&>(req);
 
-	if (obj._content_length.value() == (uint32_t)obj._data.size())   // data validation
+	if (reqobj._version.value() == APV_0_1) // check proto version
 	{
-		if (obj._version.value() == APV_0_1) // check proto version
-		{
-			// pack version
-			obuffer << obj._version;
+		VUInt uinthelper;
 
-			// pack svc id
-			obuffer << obj._svc_id;
+		// pack version
+		uinthelper.value(APV_0_1);
+		obuffer << uinthelper;
 
-			// pack svc inst id
-			obuffer << obj._svc_inst_id;
+		// pack svc id
+		obuffer << reqobj._svc_id;
 
-			// pack content length
-			obuffer << obj._content_length;
+		// pack svc inst id
+		obuffer << reqobj._svc_inst_id;
 
-			// pack content
-			obuffer.insert(obuffer.end(), obj._data.begin(), obj._data.end());
-		}
-		else
-		{
-			result = false;
-		}
+		// pack content length
+		uinthelper.value(rspobj.length());
+		obuffer << uinthelper;
+
+		// pack content
+		obuffer.insert(
+			obuffer.end(),
+			rspobj.protodata.begin(),
+			rspobj.protodata.end());
 	}
 	else
 	{

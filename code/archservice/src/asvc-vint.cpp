@@ -7,6 +7,26 @@ VInt::VInt(std::int32_t val) noexcept
 	: VUInt(_zz_map(val))
 {}
 
+VInt::VInt(const VInt& rhs) noexcept
+	: VUInt(rhs)
+{}
+
+VInt::VInt(VInt&& rhs) noexcept
+	: VUInt(std::move(rhs))
+{}
+
+VInt& VInt::operator=(const VInt& rhs) noexcept
+{
+	VUInt::operator=(rhs);
+	return *this;
+}
+
+VInt& VInt::operator=(VInt&& rhs) noexcept
+{
+	VUInt::operator=(std::move(rhs));
+	return *this;
+}
+
 VInt::~VInt()
 {}
 

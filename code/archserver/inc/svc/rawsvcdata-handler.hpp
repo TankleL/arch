@@ -14,8 +14,10 @@ namespace svc
 			PP_Idle,
 			PP_ConnIDH8,
 			PP_ConnIDL8,
-			PP_High8,
-			PP_Low8,
+			PP_CCFH8,
+			PP_CCFL8,
+			PP_DataSizeH8,
+			PP_DataSizeL8,
 			PP_Data,
 
 			PP_Bad
@@ -50,7 +52,6 @@ namespace svc
 		
 		bool serialize(
 			std::vector<uint8_t>& data,
-			const uint16_t& conn_id,
 			const core::ProtocolQueue::node_t& node);
 
 	private:
@@ -61,8 +62,9 @@ namespace svc
 	private:
 		core::ProtocolQueue::node_t	_temp;
 		ParsingPhase				_pp;
-		payload_u16_u				_len;
 		payload_u16_u				_conn_id;
+		payload_u16_u				_ccf;
+		payload_u16_u				_len;
 	};
 
 }

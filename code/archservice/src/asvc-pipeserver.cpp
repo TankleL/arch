@@ -10,6 +10,7 @@ archsvc::PipeServer::PipeServer(
 	, _pipe_client(*this)
 	, _uvloop({})
 	, _receiver(receiver)
+	, _accepted(false)
 	, _thread(std::thread(std::bind(&PipeServer::_workthread, this)))
 {
 #if defined (WIN32) || defined(_WIN32)
@@ -22,10 +23,23 @@ archsvc::PipeServer::PipeServer(
 archsvc::PipeServer::~PipeServer()
 {}
 
-void archsvc::PipeServer::write(std::vector<uint8_t>&& data)
+void archsvc::PipeServer::write(
+	std::vector<uint8_t>&& data,
+	uint16_t conn_id,
+	uint16_t ccf)
 {
-	write_req_t* req = new write_req_t(std::move(data));
-	uv_write(req, (uv_stream_t*)&_pipe_client, &req->buf, 1, _on_written);
+	if (_accepted)
+	{
+		std::vector<uint8_t> obuffer;
+		_dataproc.serialiaze(
+			obuffer,
+			conn_id,
+			ccf,
+			data);
+
+		write_req_t* req = new write_req_t(std::move(obuffer));
+		uv_write(req, (uv_stream_t*)& _pipe_client, &req->buf, 1, _on_written);
+	}
 }
 
 void archsvc::PipeServer::wait()
@@ -46,21 +60,25 @@ void archsvc::PipeServer::_workthread()
 
 void archsvc::PipeServer::_on_connect(uv_stream_t* stream, int status)
 {
-	if (status < 0)
+	pipe_t& pipe_handle = (pipe_t&)(*stream);
+	if (status < 0 ||
+		pipe_handle.pipesvr._accepted)
 	{
 		return;
 	}
-
-	pipe_t& pipe_handle = (pipe_t&)(*stream);
-	pipe_t* client = new pipe_t(pipe_handle.pipesvr);
-	uv_pipe_init(&pipe_handle.pipesvr._uvloop, client, 0);
-	if (!uv_accept(stream, (uv_stream_t*)client))
+	
+	uv_pipe_init(
+		&pipe_handle.pipesvr._uvloop,
+		&pipe_handle.pipesvr._pipe_client,
+		0);
+	if (!uv_accept(stream, (uv_stream_t*)&pipe_handle.pipesvr._pipe_client))
 	{
-		uv_read_start((uv_stream_t*)client, _on_alloc, _on_read);
+		pipe_handle.pipesvr._accepted = true;
+		uv_read_start((uv_stream_t*)&pipe_handle.pipesvr._pipe_client, _on_alloc, _on_read);
 	}
 	else
 	{
-		uv_close((uv_handle_t*)client, _on_closed);
+		uv_close((uv_handle_t*)&pipe_handle.pipesvr._pipe_client, _on_closed);
 	}
 }
 
@@ -85,11 +103,18 @@ void archsvc::PipeServer::_on_read(uv_stream_t* client, ssize_t nread, const uv_
 			if (RawSvcDataHandler::PP_Idle == pp)
 			{
 				std::vector<uint8_t> data;
-				pipe_handler.pipesvr._dataproc.get_deserialized(data);
+				uint16_t conn_id;
+				uint16_t ccf;
+				pipe_handler.pipesvr._dataproc.get_deserialized(
+					data,
+					conn_id,
+					ccf);
 				
 				if (!pipe_handler.pipesvr._receiver(
-					std::move(data),
-					pipe_handler.pipesvr))
+						std::move(data),
+						conn_id,
+						ccf,
+						pipe_handler.pipesvr))
 				{
 					goon = false;
 					uv_close((uv_handle_t*)client, _on_closed);
@@ -122,7 +147,8 @@ void archsvc::PipeServer::_on_written(uv_write_t* req, int status)
 
 void archsvc::PipeServer::_on_closed(uv_handle_t* handle)
 {
-	delete handle;
+	pipe_t& pipe_handler = (pipe_t&)*handle;
+	pipe_handler.pipesvr._accepted = false;
 }
 
 

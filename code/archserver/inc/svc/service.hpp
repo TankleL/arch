@@ -36,7 +36,8 @@ namespace svc
 
 		ServiceInstance* get_instance(
 			const core::IProtocolData::service_inst_id_t& id) const;
-		ServiceInstance* get_instance_random();
+		ServiceInstance* get_instance_random(core::IProtocolData::service_inst_id_t& id);
+
 
 	private:
 		core::IProtocolData::service_id_t	_id;
