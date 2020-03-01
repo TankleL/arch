@@ -12,8 +12,6 @@ bool on_receive(
 	uint16_t ccf,
 	PipeServer& pipe)
 {
-	ccf = ccf_set_true(ccf, CCF_Close);
-	
 	pipe.write(
 		std::move(data),
 		conn_id,

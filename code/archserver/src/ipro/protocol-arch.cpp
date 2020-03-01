@@ -140,7 +140,7 @@ ipro::protocol_arch::ArchProtocol::proc_istrm(
 			}
 			else
 			{
-				PPR_ERROR;
+				return PPR_ERROR;
 			}
 		}
 			break;
