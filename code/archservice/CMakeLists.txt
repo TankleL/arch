@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(${LIBUV_INC})
 include_directories(${GETPOT_INC})
+include_directories(${VARDATA_INC})
 
 include_directories(inc)
 file(GLOB_RECURSE ARCHSVC_INC_FILES "inc/*.hpp")
@@ -22,6 +23,7 @@ add_library(archsvc_a STATIC
 target_link_libraries(archsvc_a
     uv_a
     getopt_a
+    vardata_a
 )
 
 

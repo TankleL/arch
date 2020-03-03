@@ -1,5 +1,7 @@
 #include "protocol-queue.hpp"
 
+using namespace archproto;
+
 core::ProtocolQueue::ProtocolQueue() noexcept
 {}
 

@@ -15,10 +15,9 @@ namespace core
 	public:
 		Connection(
 			conn_id_t id = 0,
-			ProtocolType default_protocol = PT_Unknown) noexcept
+			archproto::ProtocolType default_proto= PT_Unknown) noexcept
 			: _id(id)
-			, _iapp_protocol(default_protocol)
-			, _oapp_protocol(default_protocol)
+			, _tempproto(default_proto)
 		{}
 
 		void set_id(conn_id_t id) noexcept
@@ -41,42 +40,41 @@ namespace core
 			return _stream.get();
 		}
 
-		void set_iapp_protocol(const ProtocolType& aptype) noexcept
+		archproto::ProtocolType get_tempproto() const noexcept
 		{
-			_iapp_protocol = aptype;
+			return _tempproto;
 		}
 
-		ProtocolType get_iapp_protocol() const noexcept
+		void set_tempproto(const archproto::ProtocolType& proto) noexcept
 		{
-			return _iapp_protocol;
+			_tempproto = proto;
 		}
 
-		void set_oapp_protocol(const ProtocolType& aptype) noexcept
+		void set_tempdata(std::unique_ptr<archproto::IProtocolData>&& tempdata) noexcept
 		{
-			_oapp_protocol = aptype;
+			_tempdata = std::move(tempdata);
 		}
 
-		ProtocolType get_oapp_protocol() const noexcept
+		bool has_tempdata() const noexcept
 		{
-			return _oapp_protocol;
+			return _tempdata != nullptr;
 		}
 
-		void set_app_protocol_data(const std::shared_ptr<IProtocolData>& protocol_data) noexcept
+		archproto::IProtocolData& get_tempdata() const noexcept
 		{
-			_app_prot_data = protocol_data;
+			return *(_tempdata.get());
 		}
 
-		std::weak_ptr<IProtocolData> get_app_protocol_data() const noexcept
+		std::unique_ptr<archproto::IProtocolData>&& acquire_tempdata() noexcept
 		{
-			return _app_prot_data;
+			return std::move(_tempdata);
 		}
 
 	private:
-		std::unique_ptr<StreamT>		_stream;
-		std::shared_ptr<IProtocolData>	_app_prot_data;
-		conn_id_t		_id;
-		ProtocolType	_iapp_protocol;
-		ProtocolType	_oapp_protocol;
+		std::unique_ptr<StreamT>					_stream;
+		std::unique_ptr<archproto::IProtocolData>	_tempdata;
+		archproto::ProtocolType						_tempproto;
+		conn_id_t									_id;
 	};
 
 }

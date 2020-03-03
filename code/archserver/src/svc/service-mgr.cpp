@@ -3,10 +3,11 @@
 
 using namespace svc;
 using namespace core;
+using namespace archproto;
 
 
 std::unordered_map<
-	core::IProtocolData::service_id_t,
+	archproto::IProtocolData::service_id_t,
 	std::shared_ptr<Service>>	ServiceMgr::_svcs;
 
 std::unordered_map<
@@ -18,38 +19,37 @@ bool svc::ServiceMgr::dispatch_protocol_data(
 	core::ProtocolQueue::node_t&& node)
 {
 	bool result = true;
-	if (!node.data.expired())
-	{
-		auto protodata = node.data.lock();
-		auto svc_id = protodata->service_id();
-		auto inst_id = protodata->service_inst_id();
 
-		const auto& svc = _svcs.find(svc_id);
-		if (svc != _svcs.cend())
+	auto svc_id = node.data->service_id();
+	auto inst_id = node.data->service_inst_id();
+
+	const auto& svc = _svcs.find(svc_id);
+	if (svc != _svcs.cend())
+	{
+		if (inst_id != 0)
 		{
-			if (inst_id != 0)
-			{
-				svc->second->get_instance(inst_id)->write_pipe(std::move(node));
-			}
-			else
-			{  // assign an instance randomly for the request
-				core::IProtocolData::service_inst_id_t inst_id;
-				svc->second->get_instance_random(inst_id)->write_pipe(std::move(node));
-				protodata->set_service_inst_id(inst_id);
-			}
+			svc->second->get_instance(inst_id)->write_pipe(std::move(node));
+		}
+		else
+		{  // assign an instance randomly for the request
+			archproto::IProtocolData::service_inst_id_t inst_id;
+			svc::ServiceInstance* inst = svc->second->get_instance_random(inst_id);
+			node.data->set_service_inst_id(inst_id);
+			inst->write_pipe(std::move(node));
 		}
 	}
 	else
 	{
 		result = false;
 	}
+
 	return result;
 }
 
 svc::ServiceMgr::ioqueues_t&
 svc::ServiceMgr::get_ioques(
-	const core::IProtocolData::service_id_t& svc_id,
-	const core::IProtocolData::service_inst_id_t& inst_id)
+	const archproto::IProtocolData::service_id_t& svc_id,
+	const archproto::IProtocolData::service_inst_id_t& inst_id)
 {
 	const auto& ques = _svc_ioqueues.find(
 		_ioqueue_id(svc_id, inst_id));
@@ -77,8 +77,8 @@ void svc::ServiceMgr::add_service(
 }
 
 void svc::ServiceMgr::startup_service(
-	const core::IProtocolData::service_id_t& svc_id,
-	const core::IProtocolData::service_inst_id_t& inst_id)
+	const archproto::IProtocolData::service_id_t& svc_id,
+	const archproto::IProtocolData::service_inst_id_t& inst_id)
 {
 	const auto& service = _svcs.find(svc_id);
 	if (service != _svcs.cend())
@@ -104,11 +104,11 @@ void svc::ServiceMgr::startup_service(
 }
 
 std::size_t svc::ServiceMgr::_ioqueue_id(
-	core::IProtocolData::service_id_t svc_id,
-	core::IProtocolData::service_inst_id_t inst_id)
+	archproto::IProtocolData::service_id_t svc_id,
+	archproto::IProtocolData::service_inst_id_t inst_id)
 {
-	size_t h1 = std::hash<core::IProtocolData::service_id_t>{}(svc_id);
-	size_t h2 = std::hash<core::IProtocolData::service_inst_id_t>{}(inst_id);
+	size_t h1 = std::hash<archproto::IProtocolData::service_id_t>{}(svc_id);
+	size_t h2 = std::hash<archproto::IProtocolData::service_inst_id_t>{}(inst_id);
 	return h1 ^ (h2 << 1);
 }
 

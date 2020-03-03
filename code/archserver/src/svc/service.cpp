@@ -2,9 +2,10 @@
 #include "ex-general.hpp"
 
 using namespace svc;
+using namespace archproto;
 
 svc::Service::Service(
-			const core::IProtocolData::service_id_t id,
+			const IProtocolData::service_id_t id,
 			const std::string& name,
 			const std::string& path,
 			const std::string& workingdir,
@@ -46,13 +47,13 @@ svc::Service::operator=(Service&& rhs) noexcept
 svc::Service::~Service()
 {}
 
-core::IProtocolData::service_id_t svc::Service::get_id() const
+IProtocolData::service_id_t svc::Service::get_id() const
 {
 	return _id;
 }
 
 void svc::Service::new_instance(
-	const core::IProtocolData::service_inst_id_t id,
+	const IProtocolData::service_inst_id_t id,
 	const std::shared_ptr<core::ProtocolQueue>& inque,
 	const std::shared_ptr<core::ProtocolQueue>& outque)
 {
@@ -75,7 +76,7 @@ void svc::Service::new_instance(
 }
 
 ServiceInstance* svc::Service::get_instance(
-	const core::IProtocolData::service_inst_id_t& id) const
+	const IProtocolData::service_inst_id_t& id) const
 {
 	// no need to check whether the instance exists or not.
 	// if not, just let server go down because there must be
@@ -85,7 +86,7 @@ ServiceInstance* svc::Service::get_instance(
 }
 
 ServiceInstance* svc::Service::get_instance_random(
-	core::IProtocolData::service_inst_id_t& id)
+	IProtocolData::service_inst_id_t& id)
 {
 	id = _inst_ids[(_top_inst_id_idx++ % _inst_ids.size())];
 	return _insts[id].get();

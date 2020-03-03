@@ -1,58 +1,68 @@
 #include "protocol-arch.hpp"
+#include "vardata-utilities.hpp"
 
-using namespace core;
+using namespace archproto;
 
-ipro::protocol_arch::ArchProtocolData::ArchProtocolData()
+
+ArchProtocolData::ArchProtocolData()
 	: _version(APV_Unknown)
 	, _parsing_phase(APP_Start)
 	, _content_length(0)
-	, _conn_id(0)
 {}
 
-ipro::protocol_arch::ArchProtocolData::~ArchProtocolData()
+ArchProtocolData::~ArchProtocolData()
 {}
 
-core::IProtocolData::service_id_t
-ipro::protocol_arch::ArchProtocolData::service_id() const noexcept
+IProtocolData::service_id_t
+ArchProtocolData::service_id() const noexcept
 {
 	return _svc_id.value();
 }
 
-core::IProtocolData::service_inst_id_t
-ipro::protocol_arch::ArchProtocolData::service_inst_id() const noexcept
+IProtocolData::service_inst_id_t
+ArchProtocolData::service_inst_id() const noexcept
 {
 	return _svc_inst_id.value();
 }
 
 void
-ipro::protocol_arch::ArchProtocolData::set_service_inst_id(service_inst_id_t id) noexcept
+ArchProtocolData::set_service_id(service_id_t id) noexcept
+{
+	_svc_id.value(id);
+}
+
+void
+ArchProtocolData::set_service_inst_id(service_inst_id_t id) noexcept
 {
 	_svc_inst_id.value(id);
 }
 
-core::IProtocolData::length_t
-ipro::protocol_arch::ArchProtocolData::length() const noexcept
+IProtocolData::length_t
+ArchProtocolData::length() const noexcept
 {
 	return (length_t)_data.size();
 }
 
 const std::uint8_t*
-ipro::protocol_arch::ArchProtocolData::data() const noexcept
+ArchProtocolData::data() const noexcept
 {
 	return _data.data();
 }
 
 
-core::ProtocolType
-ipro::protocol_arch::ArchProtocol::get_protocol_type() const noexcept
+ProtocolType
+ArchProtocol::get_protocol_type() const noexcept
 {
 	return PT_Arch;
 }
 
 
-core::IProtocolHandler::ProtoProcRet
-ipro::protocol_arch::ArchProtocol::proc_istrm(
-	IProtocolData& dest, std::uint8_t* readbuf, size_t toreadlen, size_t& procbytes)
+IProtocolHandler::ProtoProcRet
+ArchProtocol::des_sock_stream(
+	IProtocolData& dest,
+	const uint8_t* readbuf,
+	size_t toreadlen,
+	size_t& procbytes)
 {
 	procbytes = 0;
 	ArchProtocolData& obj = static_cast<ArchProtocolData&>(dest);
@@ -152,38 +162,29 @@ ipro::protocol_arch::ArchProtocol::proc_istrm(
 
 
 bool
-ipro::protocol_arch::ArchProtocol::proc_ostrm(
-	std::vector<uint8_t>& obuffer,
-	const IProtocolData& rsp,
-	const IProtocolData& req)
+ArchProtocol::ser_sock_stream(
+	std::vector<uint8_t>& dest,
+	const IProtocolData& obj)
 {
 	bool result = true;
-	const core::PlainProtocolData& rspobj = static_cast<const core::PlainProtocolData&>(rsp);
-	const ArchProtocolData& reqobj = static_cast<const ArchProtocolData&>(req);
+	const ArchProtocolData& src = static_cast<const ArchProtocolData&>(obj);
 
-	if (reqobj._version.value() == APV_0_1) // check proto version
+	if (src._version.value() == APV_0_1) // check proto version
 	{
-		VUInt uinthelper;
-
 		// pack version
-		uinthelper.value(APV_0_1);
-		obuffer << uinthelper;
+		dest << VUInt(APV_0_1);
 
 		// pack svc id
-		obuffer << reqobj._svc_id;
+		dest << src._svc_id;
 
 		// pack svc inst id
-		obuffer << reqobj._svc_inst_id;
+		dest << src._svc_inst_id;
 
 		// pack content length
-		uinthelper.value(rspobj.length());
-		obuffer << uinthelper;
+		dest << VUInt(src.length());
 
 		// pack content
-		obuffer.insert(
-			obuffer.end(),
-			rspobj.protodata.begin(),
-			rspobj.protodata.end());
+		dest << src._data;
 	}
 	else
 	{
@@ -194,10 +195,44 @@ ipro::protocol_arch::ArchProtocol::proc_ostrm(
 }
 
 bool
-ipro::protocol_arch::ArchProtocol::proc_check_switch(ProtocolType& dest_proto, const IProtocolData& obj)
+ArchProtocol::chk_sock_protoswitch(
+	ProtocolType& dest_proto,
+	const IProtocolData& obj)
 {
 	return false;
 }
+
+IProtocolHandler::ProtoProcRet
+ArchProtocol::des_service_stream(
+	IProtocolData& dest,
+	const uint8_t* src,
+	size_t toreadlen,
+	size_t& procbytes)
+{
+	
+	return PPR_AGAIN;
+}
+
+bool
+ArchProtocol::ser_service_stream(
+	std::vector<uint8_t>& dest,
+	const IProtocolData& obj)
+{
+	const ArchProtocolData& src = static_cast<const ArchProtocolData&>(obj);
+
+	dest << src._version;
+	dest << src._svc_id;
+	dest << src._svc_inst_id;
+	dest << src._content_length;
+	dest << src._data;
+
+	return true;
+}
+
+
+
+
+
 
 
 

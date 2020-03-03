@@ -6,6 +6,7 @@
 #include "ccf.hpp"
 
 using namespace core;
+using namespace archproto;
 
 TCPServer::TCPServer(
 	const std::string& ipaddr,
@@ -22,7 +23,7 @@ TCPServer::TCPServer(
 	, _proto_handlers{
 		/*PT_Http*/ nullptr,
 		/*PT_WebSocket */ nullptr,
-		/*PT_Arch*/ std::make_unique<ipro::protocol_arch::ArchProtocol>()}
+		/*PT_Arch*/ std::make_unique<ArchProtocol>()}
 {}
 
 TCPServer::~TCPServer()
@@ -83,23 +84,23 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 {
 	tcp_t& tcp_handle = (tcp_t&)* stream;
 
-	auto& conn = tcp_handle.conn;
+	auto conn = tcp_handle.conn;
 	if (conn && nread > 0)
 	{
-		assert(conn->get_iapp_protocol() < PT_ProtoTypesNum);
+		assert(conn->get_tempproto() < PT_ProtoTypesNum);
 
 		bool goon = true;
 		size_t offset = 0;
 		while(goon)
 		{
-			if (!tcp_handle.svr._ensure_protocol_data(*conn)) break;
-			auto data = conn->get_app_protocol_data().lock();
+			tcp_handle.svr._ensure_protocol_data(*conn);
+			IProtocolData& tmpdata = conn->get_tempdata();
 
-			IProtocolHandler* phdl = tcp_handle.svr._get_protocol_handler(conn->get_iapp_protocol());
+			IProtocolHandler* phdl = tcp_handle.svr._get_protocol_handler(conn->get_tempproto());
 
 			size_t	procbytes = 0;
-			IProtocolHandler::ProtoProcRet proc_ret = phdl->proc_istrm(
-				*data,
+			IProtocolHandler::ProtoProcRet proc_ret = phdl->des_sock_stream(
+				tmpdata,
 				(uint8_t*)(buf->base + offset),
 				nread - offset,
 				procbytes);
@@ -112,12 +113,13 @@ void TCPServer::_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf
 			case IProtocolHandler::PPR_PULSE:
 			{
 				ProtocolType prot_switchto = PT_Unknown;
-				if (!phdl->proc_check_switch(prot_switchto, *data))
+				if (!phdl->chk_sock_protoswitch(prot_switchto, tmpdata))
 				{
 					ProtocolQueue::node_t node(
-						data,
+						conn->acquire_tempdata(),
 						conn->get_id(),
-						0);
+						0,
+						conn->get_tempproto());
 
 					if(!svc::ServiceMgr::dispatch_protocol_data(std::move(node)))
 					{
@@ -175,39 +177,30 @@ void TCPServer::_on_write_timer(uv_timer_t* handle)
 		auto conn = connmap.get_connection(node.conn_id);
 		if (conn)
 		{
-			if (node.sdata->length() > 0)
+			if (node.data->length() > 0)
 			{
-				if (!conn->get_app_protocol_data().expired())
+				IProtocolHandler* phdl = tm_handle.svr._get_protocol_handler(node.proto);
+				std::vector<uint8_t> stream;
+
+				if (phdl->ser_sock_stream(stream, *node.data))
 				{
-					auto reqdata = conn->get_app_protocol_data().lock();
-
-					IProtocolHandler* phdl = tm_handle.svr._get_protocol_handler(conn->get_oapp_protocol());
-					std::vector<uint8_t> obuffer;
-
-					if (phdl->proc_ostrm(obuffer, *node.sdata, *reqdata))
-					{
-						write_req_t* req = new write_req_t(
-							std::move(obuffer),
-							node.ccf);
-						uv_write(
-							req,
-							(uv_stream_t*)conn->get_stream(),
-							&req->buf,
-							1,
-							_on_written);
-					}
-					else
-					{ // failed to generate response stream data
-						_close_connection(conn->get_stream());
-					}
+					write_req_t* req = new write_req_t(
+						std::move(stream),
+						node.ccf);
+					uv_write(
+						req,
+						(uv_stream_t*)conn->get_stream(),
+						&req->buf,
+						1,
+						_on_written);
 				}
 				else
-				{ // lost the original request data
+				{ // failed to generate response stream data
 					_close_connection(conn->get_stream());
 				}
 			}
 			else
-			{ // no response data.
+			{ // empty response data.
 				if (ccf_check(node.ccf, CCF_Close))
 				{
 					_close_connection(conn->get_stream());
@@ -239,25 +232,21 @@ void TCPServer::_close_connection(tcp_t* handle)
 	}
 }
 
-bool TCPServer::_ensure_protocol_data(Connection<tcp_t>& conn)
+void TCPServer::_ensure_protocol_data(Connection<tcp_t>& conn)
 {
-	bool succ = true;
-	auto data = conn.get_app_protocol_data().lock();
-	if (nullptr == data)
+	if (!conn.has_tempdata())
 	{
-		switch (conn.get_iapp_protocol())
+		switch (conn.get_tempproto())
 		{
 		case PT_Arch:
-			conn.set_app_protocol_data(
-				std::make_shared<ipro::protocol_arch::ArchProtocolData>());
+			conn.set_tempdata(
+				std::make_unique<ArchProtocolData>());
 			break;
 
 		default:
-			succ = false;
-			_close_connection(conn.get_stream());
+			assert(false);
 		}
 	}
-	return succ;
 }
 
 IProtocolHandler* TCPServer::_get_protocol_handler(ProtocolType ptype)

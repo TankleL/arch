@@ -92,8 +92,8 @@ namespace core
 
 	private:
 		void _work_thread();
-		bool _ensure_protocol_data(Connection<tcp_t>& conn);
-		IProtocolHandler* _get_protocol_handler(ProtocolType ptype);
+		void _ensure_protocol_data(Connection<tcp_t>& conn);
+		archproto::IProtocolHandler* _get_protocol_handler(archproto::ProtocolType ptype);
 		void _switch_protocol(Connection<tcp_t>& conn);
 
 	private:
@@ -105,7 +105,7 @@ namespace core
 		tcp_t			_tcp_handle;
 		uvtimer_t		_tm_write;
 		ConnMap<_tcp_t>	_connections;
-		std::array<std::unique_ptr<IProtocolHandler>, PT_ProtoTypesNum> _proto_handlers;
+		std::array<std::unique_ptr<archproto::IProtocolHandler>, archproto::PT_ProtoTypesNum> _proto_handlers;
 		std::vector<core::ProtocolQueue::node_t>	_tmp_outnodes;
 
 	private:

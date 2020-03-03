@@ -26,24 +26,24 @@ namespace svc
 			const std::shared_ptr<Service>& service);
 
 		static void startup_service(
-			const core::IProtocolData::service_id_t& svc_id,
-			const core::IProtocolData::service_inst_id_t& inst_id);
+			const archproto::IProtocolData::service_id_t& svc_id,
+			const archproto::IProtocolData::service_inst_id_t& inst_id);
 
 		static ioqueues_t& get_ioques(
-			const core::IProtocolData::service_id_t& svc_id,
-			const core::IProtocolData::service_inst_id_t& svc_inst_id);
+			const archproto::IProtocolData::service_id_t& svc_id,
+			const archproto::IProtocolData::service_inst_id_t& svc_inst_id);
 
 		static bool dispatch_protocol_data(core::ProtocolQueue::node_t&& node);
 		static void pull_protocol_data(std::vector<core::ProtocolQueue::node_t>& results);
 
 	private:
 		static std::size_t _ioqueue_id(
-			core::IProtocolData::service_id_t svc_id,
-			core::IProtocolData::service_inst_id_t inst_id);
+			archproto::IProtocolData::service_id_t svc_id,
+			archproto::IProtocolData::service_inst_id_t inst_id);
 
 	private:
 		static std::unordered_map<
-			core::IProtocolData::service_id_t,
+			archproto::IProtocolData::service_id_t,
 			std::shared_ptr<Service>>		_svcs;
 		static std::unordered_map<
 			std::size_t,

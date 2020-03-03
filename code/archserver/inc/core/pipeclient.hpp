@@ -3,7 +3,7 @@
 #include "pre-req.hpp"
 #include "protocol-queue.hpp"
 #include "uv.h"
-#include "rawsvcdata-handler.hpp"
+#include "vuint.hpp"
 
 namespace core
 {
@@ -20,7 +20,7 @@ namespace core
 				: pipcli(pipeclient)
 			{}
 
-			PipeClient&		pipcli;
+			PipeClient& pipcli;
 		} pipe_t;
 
 		typedef struct _conn_t : public uv_connect_t
@@ -31,7 +31,7 @@ namespace core
 			{}
 
 			PipeClient& pipcli;
-			uv_stream_t*	uvstream;
+			uv_stream_t* uvstream;
 		} conn_t;
 
 		typedef struct _async_t : public uv_async_t
@@ -55,7 +55,7 @@ namespace core
 		typedef struct _write_req_t : public uv_write_t
 		{
 			_write_req_t(std::vector<std::uint8_t>&& stream_data)
-				: uv_write_t({0})
+				: uv_write_t({ 0 })
 				, data(std::move(stream_data))
 			{
 				uvbuf.base = (char*)data.data();
@@ -81,10 +81,13 @@ namespace core
 
 	private:
 		void _workthread();
+		archproto::IProtocolHandler* _get_protocol_handler(archproto::ProtocolType ptype) const noexcept;
+		bool read(const uint8_t* buf, size_t toreadlen, size_t& procbytes);
+
 
 	private:
-		std::thread		_thread;
-		std::string		_name;
+		std::thread						_thread;
+		std::string						_name;
 		std::shared_ptr<ProtocolQueue>	_inque;
 		std::shared_ptr<ProtocolQueue>	_outque;
 		outque_guard_t					_guard;
@@ -93,7 +96,47 @@ namespace core
 		uv_loop_t		_uvloop;
 		async_t			_async_write;
 		tm_reconn_t		_uvtm_reconn;
-		svc::RawSvcDataHandler	_dataproc;
+
+		std::array<
+			std::unique_ptr<archproto::IProtocolHandler>,
+			archproto::PT_ProtoTypesNum> _proto_handlers;
+
+	private:
+		typedef struct _conn_tempinfo_s
+		{
+			_conn_tempinfo_s()
+				: protocol_type(archproto::PT_Unknown)
+				, conn_id(0)
+				, ccf(0)
+				, pp(PP_Idle)
+			{}
+
+			enum ParsingPhase
+			{
+				PP_Idle, // conn id
+				PP_CCF,
+				PP_Proto
+			};
+
+			bool parse(
+				const uint8_t* buf,
+				size_t toreadlen,
+				bool& ready,
+				size_t& procbytes);
+
+			void reset();
+
+			void ensure_data();
+
+			std::unique_ptr<archproto::IProtocolData>	protocol_data;
+			VUInt							protocol_type;
+			VUInt							conn_id;
+			VUInt							ccf;
+			ParsingPhase					pp;
+		} conn_tempinfo_t;
+
+		conn_tempinfo_t		_tempinfo;
+		bool				_tempinfo_ready;
 
 	private:
 		static void _on_connect(uv_connect_t* conn, int status);
@@ -103,6 +146,10 @@ namespace core
 		static void	_on_written(uv_write_t* req, int status);
 		static void _on_closed(uv_handle_t* handle);
 		static void _on_tm_reconn(uv_timer_t* handle);
+
+		static void _ser_queue_node(
+			std::vector<uint8_t>& dest,
+			const ProtocolQueue::node_t& node);
 	};
 
 

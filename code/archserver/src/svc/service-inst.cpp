@@ -3,12 +3,13 @@
 
 using namespace svc;
 using namespace core;
+using namespace archproto;
 
 ServiceInstance::ServiceInstance(
 	const Service& service,
-	const core::IProtocolData::service_inst_id_t& id,
-	const std::shared_ptr<core::ProtocolQueue>& inque,
-	const std::shared_ptr<core::ProtocolQueue>& outque)
+	const IProtocolData::service_inst_id_t& id,
+	const std::shared_ptr<ProtocolQueue>& inque,
+	const std::shared_ptr<ProtocolQueue>& outque)
 	: _id(id)
 	, _svc_id(service.get_id())
 {
@@ -62,14 +63,8 @@ void ServiceInstance::write_pipe(core::ProtocolQueue::node_t&& node)
 
 void ServiceInstance::_pipe_outque_guard(core::ProtocolQueue::node_t& node)
 {
-	PlainProtocolData& pdata = static_cast<PlainProtocolData&>(*node.sdata);
-	pdata.svc_id = _svc_id;
-	pdata.svc_inst_id = _id;
-}
-
-void ServiceInstance::_pipe_errored(int err)
-{
-
+	node.data->set_service_id(_svc_id);
+	node.data->set_service_inst_id(_id);
 }
 
 std::string ServiceInstance::_pipename() const

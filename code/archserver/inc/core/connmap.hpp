@@ -25,7 +25,7 @@ namespace core
 		{}
 
 	public:
-		conn_t* new_connection(ProtocolType default_procotol)
+		conn_t* new_connection(archproto::ProtocolType default_procotol)
 		{
 			std::unique_lock<std::mutex>	lock;
 			conn_id_t id = (++_top_conn_id) % max_conn_id;

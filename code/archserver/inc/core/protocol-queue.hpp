@@ -13,40 +13,43 @@ namespace core
 			_node() noexcept
 				: conn_id(0)
 				, ccf(0)
+				, proto(archproto::PT_Unknown)
 			{}
 
 			_node(
-				const std::weak_ptr<IProtocolData>& protocol_data,
+				std::unique_ptr<archproto::IProtocolData>&& protocol_data,
 				uint16_t connection_id,
-				uint16_t conn_ctrl_flags)
-				: data(protocol_data)
+				uint16_t conn_ctrl_flags,
+				archproto::ProtocolType protocol)
+				: data(std::move(protocol_data))
 				, conn_id(connection_id)
 				, ccf(conn_ctrl_flags)
+				, proto(protocol)
 			{}
 
 			_node(_node&& rhs) noexcept
 				: data(std::move(rhs.data))
-				, sdata(std::move(rhs.sdata))
-				, conn_id(rhs.conn_id)
-				, ccf(rhs.ccf)
+				, conn_id(std::move(rhs.conn_id))
+				, ccf(std::move(rhs.ccf))
+				, proto(std::move(rhs.proto))
 			{}
 
 			_node& operator=(_node&& rhs) noexcept
 			{
 				data = std::move(rhs.data);
-				sdata = std::move(rhs.sdata);
-				conn_id = rhs.conn_id;
-				ccf = rhs.ccf;
+				conn_id = std::move(rhs.conn_id);
+				ccf = std::move(rhs.ccf);
+				proto = std::move(rhs.proto);
 				return *this;
 			}
 
 			_node(const _node& rhs) = delete;
 			_node& operator=(const _node& rhs) = delete;
 
-			std::weak_ptr<IProtocolData>	data;
-			std::shared_ptr<IProtocolData>	sdata;
-			uint16_t						conn_id;
-			uint16_t						ccf;	// connection control flags
+			std::unique_ptr<archproto::IProtocolData>	data;
+			uint16_t									conn_id;
+			uint16_t									ccf;	// connection control flags
+			archproto::ProtocolType						proto;
 		} node_t;
 
 	public:
