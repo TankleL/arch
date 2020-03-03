@@ -4,6 +4,7 @@
 #include <functional>
 #include <cstdint>
 #include <vector>
+#include <memory>
 
 #include "vuint.hpp"
 #include "protocol.hpp"
@@ -25,9 +26,10 @@ namespace archsvc
 
 		typedef std::function<
 			bool(
-				std::vector<uint8_t>&& data,
 				uint16_t conn_id,
 				uint16_t ccf,
+				archproto::ProtocolType proto,
+				std::unique_ptr<archproto::IProtocolData>&& data,
 				PipeServer& pipe)> receiver_t;
 
 		typedef struct _write_req_t : public uv_write_t
@@ -51,13 +53,16 @@ namespace archsvc
 		~PipeServer();
 
 		void write(
-			std::vector<uint8_t>&& data,
 			uint16_t conn_id,
-			uint16_t ccf);
+			uint16_t ccf,
+			archproto::ProtocolType protocol_type,
+			std::unique_ptr<archproto::IProtocolData>&& data);
 		void wait();
 
 	private:
 		void _workthread();
+		archproto::IProtocolHandler* _get_protocol_handler(archproto::ProtocolType proto) const noexcept;
+		bool _read(const uint8_t* buf, size_t nread, size_t& procbytes);
 
 	private:
 		pipe_t				_pipe_server;
@@ -67,6 +72,10 @@ namespace archsvc
 
 		receiver_t			_receiver;
 		bool				_accepted;
+
+		std::array<
+			std::unique_ptr<archproto::IProtocolHandler>,
+			archproto::PT_ProtoTypesNum> _proto_handlers;
 
 	private:
 		std::thread	_thread;
@@ -104,6 +113,9 @@ namespace archsvc
 			VUInt							ccf;
 			ParsingPhase					pp;
 		} conn_tempinfo_t;
+
+		conn_tempinfo_t		_tempinfo;
+		bool				_tempinfo_ready;
 
 	private:
 		static void _on_connect(uv_stream_t* stream, int status);

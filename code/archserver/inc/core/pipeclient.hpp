@@ -82,7 +82,7 @@ namespace core
 	private:
 		void _workthread();
 		archproto::IProtocolHandler* _get_protocol_handler(archproto::ProtocolType ptype) const noexcept;
-		bool read(const uint8_t* buf, size_t toreadlen, size_t& procbytes);
+		bool _read(const uint8_t* buf, size_t toreadlen, size_t& procbytes);
 
 
 	private:

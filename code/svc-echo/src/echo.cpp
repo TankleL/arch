@@ -5,17 +5,20 @@
 #include "getopt.h"
 
 using namespace archsvc;
+using namespace archproto;
 
 bool on_receive(
-	std::vector<uint8_t>&& data,
 	uint16_t conn_id,
 	uint16_t ccf,
+	ProtocolType proto,
+	std::unique_ptr<archproto::IProtocolData>&& data,
 	PipeServer& pipe)
 {
 	pipe.write(
-		std::move(data),
 		conn_id,
-		ccf);
+		ccf,
+		proto,
+		std::move(data));
 
 	return true;
 }
@@ -59,7 +62,8 @@ int main(int argc, char** argv)
 			std::placeholders::_1,
 			std::placeholders::_2,
 			std::placeholders::_3,
-			std::placeholders::_4));
+			std::placeholders::_4,
+			std::placeholders::_5));
 	inst.run();
 
     return 0;

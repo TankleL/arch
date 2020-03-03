@@ -105,8 +105,8 @@ void core::PipeClient::_on_read(uv_stream_t* client, ssize_t nread, const uv_buf
 		while (goon && ((ssize_t)offset< nread))
 		{
 			size_t procbytes = 0;
-			goon = pipe_handle.pipcli.read(
-				(uint8_t*)buf->base,
+			goon = pipe_handle.pipcli._read(
+				(uint8_t*)buf->base + offset,
 				nread - offset,
 				procbytes);
 			offset += procbytes;
@@ -132,7 +132,7 @@ void core::PipeClient::_on_read(uv_stream_t* client, ssize_t nread, const uv_buf
 	delete buf->base;
 }
 
-bool core::PipeClient::read(
+bool core::PipeClient::_read(
 	const uint8_t* buf,
 	size_t toreadlen,
 	size_t& procbytes)
