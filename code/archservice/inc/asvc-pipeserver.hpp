@@ -5,7 +5,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "asvc-rawsvcdata-handler.hpp"
+#include "vuint.hpp"
+#include "protocol.hpp"
 
 namespace archsvc
 {
@@ -63,13 +64,46 @@ namespace archsvc
 		pipe_t				_pipe_client;
 		uv_loop_t			_uvloop;
 		std::string			_pipename;
-		RawSvcDataHandler	_dataproc;
 
 		receiver_t			_receiver;
 		bool				_accepted;
 
 	private:
 		std::thread	_thread;
+
+	private:
+		typedef struct _conn_tempinfo_s
+		{
+			_conn_tempinfo_s()
+				: protocol_type(archproto::PT_Unknown)
+				, conn_id(0)
+				, ccf(0)
+				, pp(PP_Idle)
+			{}
+
+			enum ParsingPhase
+			{
+				PP_Idle, // conn id
+				PP_CCF,
+				PP_Proto
+			};
+
+			bool parse(
+				const uint8_t* buf,
+				size_t toreadlen,
+				bool& ready,
+				size_t& procbytes);
+
+			void reset();
+
+			void ensure_data();
+
+			std::unique_ptr<archproto::IProtocolData>	protocol_data;
+			VUInt							protocol_type;
+			VUInt							conn_id;
+			VUInt							ccf;
+			ParsingPhase					pp;
+		} conn_tempinfo_t;
 
 	private:
 		static void _on_connect(uv_stream_t* stream, int status);

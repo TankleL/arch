@@ -7,7 +7,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(${LIBUV_INC})
+include_directories(${VARDATA_INC})
 include_directories(${ARCHSVC_INC})
+include_directories(${ARCHPROTO_INC})
 
 include_directories(inc)
 file(GLOB_RECURSE SVC_GCHANNEL_INC_FILES "inc/*.hpp")
