@@ -266,7 +266,7 @@ void core::PipeClient::_conn_tempinfo_s::ensure_data()
 		assert(false); // not being implemented
 		
 	case PT_Arch:
-		protocol_data = std::make_unique<ArchProtocolData>();
+		protocol_data = std::move(std::make_unique<ArchProtocolData>());
 		break;
 	}
 }

@@ -54,7 +54,7 @@ namespace archproto
 
 	public:
 		ArchProtocolData();
-		~ArchProtocolData();
+		virtual ~ArchProtocolData();
 
 	public:
 		virtual service_id_t		service_id() const noexcept override;

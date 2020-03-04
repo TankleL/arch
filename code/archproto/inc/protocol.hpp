@@ -29,6 +29,9 @@ namespace archproto
 	class IProtocolData
 	{
 	public:
+		virtual ~IProtocolData() {};
+
+	public:
 		typedef uint32_t service_id_t;
 		typedef uint16_t service_inst_id_t;
 		typedef uint16_t length_t;

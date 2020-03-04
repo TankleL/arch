@@ -172,43 +172,46 @@ void TCPServer::_on_write_timer(uv_timer_t* handle)
 
 	svc::ServiceMgr::pull_protocol_data(outnodes);
 
-	for (const auto& node : outnodes)
+	if (outnodes.size())
 	{
-		auto conn = connmap.get_connection(node.conn_id);
-		if (conn)
+		for (const auto& node : outnodes)
 		{
-			if (node.data->length() > 0)
+			auto conn = connmap.get_connection(node.conn_id);
+			if (conn)
 			{
-				IProtocolHandler* phdl = tm_handle.svr._get_protocol_handler(node.proto);
-				std::vector<uint8_t> stream;
-
-				if (phdl->ser_sock_stream(stream, *node.data))
+				if (node.data->length() > 0)
 				{
-					write_req_t* req = new write_req_t(
-						std::move(stream),
-						node.ccf);
-					uv_write(
-						req,
-						(uv_stream_t*)conn->get_stream(),
-						&req->buf,
-						1,
-						_on_written);
+					IProtocolHandler* phdl = tm_handle.svr._get_protocol_handler(node.proto);
+					std::vector<uint8_t> stream;
+
+					if (phdl->ser_sock_stream(stream, *node.data))
+					{
+						write_req_t* req = new write_req_t(
+							std::move(stream),
+							node.ccf);
+						uv_write(
+							req,
+							(uv_stream_t*)conn->get_stream(),
+							&req->buf,
+							1,
+							_on_written);
+					}
+					else
+					{ // failed to generate response stream data
+						_close_connection(conn->get_stream());
+					}
 				}
 				else
-				{ // failed to generate response stream data
-					_close_connection(conn->get_stream());
-				}
-			}
-			else
-			{ // empty response data.
-				if (ccf_check(node.ccf, CCF_Close))
-				{
-					_close_connection(conn->get_stream());
+				{ // empty response data.
+					if (ccf_check(node.ccf, CCF_Close))
+					{
+						_close_connection(conn->get_stream());
+					}
 				}
 			}
 		}
+		outnodes.clear();
 	}
-	outnodes.clear();
 
 	uv_timer_start(&tm_handle, _on_write_timer, 1, 0);
 }
