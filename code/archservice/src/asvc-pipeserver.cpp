@@ -109,40 +109,8 @@ void archsvc::PipeServer::_on_read(uv_stream_t* client, ssize_t nread, const uv_
 				(uint8_t*)buf->base + offset,
 				nread - offset,
 				procbytes);
+			offset += procbytes;
 		}
-
-			//RawSvcDataHandler::ParsingPhase pp =
-			//	pipe_handler.pipesvr._dataproc.deserialize(
-			//		(uint8_t*)buf->base + offset,
-			//		nread - offset,
-			//		procbytes);
-			//offset += procbytes;
-
-			//if (RawSvcDataHandler::PP_Idle == pp)
-			//{
-			//	std::vector<uint8_t> data;
-			//	uint16_t conn_id;
-			//	uint16_t ccf;
-			//	pipe_handler.pipesvr._dataproc.get_deserialized(
-			//		data,
-			//		conn_id,
-			//		ccf);
-			//	
-			//	if (!pipe_handler.pipesvr._receiver(
-			//			std::move(data),
-			//			conn_id,
-			//			ccf,
-			//			pipe_handler.pipesvr))
-			//	{
-			//		goon = false;
-			//		uv_close((uv_handle_t*)client, _on_closed);
-			//	}
-			//}
-			//else if (RawSvcDataHandler::PP_Bad == pp)
-			//{
-			//	goon = false;
-			//	uv_close((uv_handle_t*)client, _on_closed);
-			//}
 	}
 	else if (nread < 0)
 	{

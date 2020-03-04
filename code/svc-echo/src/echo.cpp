@@ -19,7 +19,6 @@ bool on_receive(
 		ccf,
 		proto,
 		std::move(data));
-
 	return true;
 }
 

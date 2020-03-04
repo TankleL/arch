@@ -5,6 +5,8 @@
 #include "config-master.hpp"
 #include "vuint.hpp"
 
+#include <csignal>
+
 using namespace core;
 using namespace svc;
 using namespace config;
@@ -12,6 +14,7 @@ using namespace config;
 void signal_int(int sig)
 {
 	int c = 0;
+	exit(0);
 }
 
 int main(int argc, char** argv)
@@ -24,6 +27,7 @@ int main(int argc, char** argv)
 	MasterConfig::server_root = svr_root;
 #endif
 
+	signal(SIGINT, signal_int);
 	ConfigMgr::load_configs(svr_root + "/config");
 
 	for (const auto& svc : MasterConfig::services)

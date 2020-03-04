@@ -285,25 +285,28 @@ void core::PipeClient::_on_write(uv_async_t* async)
 {
 	async_t& async_handle = *(async_t*)async;
 	
-	ProtocolQueue::node_t node;
-	if (async_handle.pipcli._outque->pop(node))
+	std::vector<ProtocolQueue::node_t> nodes;
+	if (async_handle.pipcli._outque->pop(nodes))
 	{
-		std::vector<uint8_t> stream;
-
-		// serialize node info
-		_ser_queue_node(stream, node);
-
-		// serialize protocol data
-		IProtocolHandler* phdl = async_handle.pipcli._get_protocol_handler(node.proto);
-		if (phdl->ser_service_stream(stream, *node.data))
+		for (auto& node : nodes)
 		{
-			write_req_t* req = new write_req_t(std::move(stream));
-			uv_write(
-				req,
-				(uv_stream_t*)& async_handle.pipcli._pipe_handle,
-				&req->uvbuf,
-				1,
-				_on_written);
+			std::vector<uint8_t> stream;
+
+			// serialize node info
+			_ser_queue_node(stream, node);
+
+			// serialize protocol data
+			IProtocolHandler* phdl = async_handle.pipcli._get_protocol_handler(node.proto);
+			if (phdl->ser_service_stream(stream, *node.data))
+			{
+				write_req_t* req = new write_req_t(std::move(stream));
+				uv_write(
+					req,
+					(uv_stream_t*)& async_handle.pipcli._pipe_handle,
+					&req->uvbuf,
+					1,
+					_on_written);
+			}
 		}
 	}
 }
