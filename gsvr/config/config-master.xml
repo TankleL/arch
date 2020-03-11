@@ -8,20 +8,18 @@
     </Listen>
 
     <Services>
-        <!--
         <Service>
             <Name>gamechannel</Name>
             <Path>${SERVER_ROOT}/services/gamechannel</Path>
             <WorkingDir>${SERVER_ROOT}/services/gamechannel</WorkingDir>
             <Assembly>svc_gamechannel</Assembly>
-            <ServiceID>1</ServiceID>
+            <ServiceID>2101</ServiceID>
             <Instances>
                 <Instance>
                     <InstanceID>1</InstanceID>
                 </Instance>
             </Instances>
         </Service>
-        -->
         <Service>
             <Name>echo</Name>
             <Path>${SERVER_ROOT}/services/echo</Path>
