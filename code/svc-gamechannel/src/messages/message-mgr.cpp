@@ -4,7 +4,7 @@ MessageMgr::msggroup_t MessageMgr::_msggroups;
 
 size_t MessageMgr::subscribe(
 	const Message::id_t& msgid,
-	const subscriber_action_t& action)
+	const action_t& action)
 {
 	auto& sublist = _msggroups[msgid];
 
@@ -31,4 +31,16 @@ void MessageMgr::unsubscribe(
 		}
 	}
 }
+
+void MessageMgr::send_message(
+	const Message& msg
+)
+{
+	const auto& sublist = _msggroups[msg.id()];
+	for (const auto& sub : sublist.subs)
+	{
+		sub.action(msg);
+	}
+}
+
 

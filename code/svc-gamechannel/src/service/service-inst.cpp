@@ -1,4 +1,8 @@
 #include "service-inst.hpp"
+#include "service-msg.hpp"
+#include "message-mgr.hpp"
+#include "msg-registry.hpp"
+
 
 using namespace archproto;
 using namespace archsvc;
@@ -18,7 +22,9 @@ GameChannelServiceInstance::GameChannelServiceInstance(
 			std::placeholders::_4,
 			std::placeholders::_5)
 	)
-{}
+{
+	MsgRegistry::register_messages();
+}
 
 
 bool GameChannelServiceInstance::on_receive(
@@ -28,6 +34,14 @@ bool GameChannelServiceInstance::on_receive(
 		std::unique_ptr<archproto::IProtocolData>&& data,
 		archsvc::PipeServer& pipe)
 {
+	ServiceMessage msg(
+		conn_id,
+		ccf,
+		proto,
+		std::move(data),
+		&pipe);
+
+	MessageMgr::send_message(msg);
 	return true;
 }
 

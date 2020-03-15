@@ -1,6 +1,7 @@
 #include "pre-req.hpp"
 #include "getopt.h"
 #include "service-inst.hpp"
+#include "message.hpp"
 
 using namespace archsvc;
 using namespace archproto;
